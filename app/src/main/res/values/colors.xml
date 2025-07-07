@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+        <!-- MAIN -->
+    <color name="main_50">#f2faf6</color>
+    <color name="main_100">#d5f0e2</color>
+    <color name="main_200">#c1e9d4</color>
+    <color name="main_300">#a5e0c1</color>
+    <color name="main_400">#93d9b5</color>
+    <color name="main_default">#78d0a2</color>
+    <color name="main_600">#6dbd93</color>
+    <color name="main_700">#559473</color>
+    <color name="main_800">#427259</color>
+    <color name="main_900">#325744</color>
+
+    <!-- SECONDARY -->
+    <color name="secondary_50">#e9f4f3</color>
+    <color name="secondary_100">#badbdb</color>
+    <color name="secondary_200">#98caca</color>
+    <color name="secondary_300">#69b2b1</color>
+    <color name="secondary_400">#4ca3a2</color>
+    <color name="secondary_default">#1f8c8b</color>
+    <color name="secondary_600">#1c7f7e</color>
+    <color name="secondary_700">#166363</color>
+    <color name="secondary_800">#114d4c</color>
+    <color name="secondary_900">#0d3b3ba</color>
+
+    <!-- DARK -->
+    <color name="dark_50">#e9e9eb</color>
+    <color name="dark_100">#babcc0</color>
+    <color name="dark_200">#999ba1</color>
+    <color name="dark_300">#6b6e76</color>
+    <color name="dark_400">#4e515c</color>
+    <color name="dark_default">#222633</color>
+    <color name="dark_600">#1f232e</color>
+    <color name="dark_700">#1b1b24</color>
+    <color name="dark_800">#13151c</color>
+    <color name="dark_900">#0e1015</color>
+
+    <!-- ACCENT -->
+    <color name="accent_50">#fef7eb</color>
+    <color name="accent_100">#fde6c1</color>
+    <color name="accent_200">#f9daa3</color>
+    <color name="accent_300">#f6c97a</color>
+    <color name="accent_400">#f5bf60</color>
+    <color name="accent_default">#f2af38</color>
+    <color name="accent_600">#dc9f33</color>
+    <color name="accent_700">#ac7c28</color>
+    <color name="accent_800">#85601f</color>
+    <color name="accent_900">#664a18</color>
+</resources>
