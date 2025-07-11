@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity
-data class PhotoLog(
+data class PhotoLogEntity(
     @PrimaryKey val id: Long,
     val file_path: String,
     val timestamp: Long,
