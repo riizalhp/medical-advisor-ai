@@ -1,11 +1,13 @@
 package com.contsol.ayra.data.source.local.database.dao
 
+import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.contsol.ayra.data.source.local.database.entity.PhotoLogEntity
 
+@Dao
 interface PhotoLogDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(photoLog: PhotoLogEntity): Long
