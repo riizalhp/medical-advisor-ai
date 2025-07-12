@@ -59,5 +59,6 @@ dependencies {
     implementation(libs.room.ktx)
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
+    implementation(libs.tasks.genai)
     ksp(libs.room.compiler)
 }

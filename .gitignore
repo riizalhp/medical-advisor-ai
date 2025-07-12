@@ -31,3 +31,4 @@ render.experimental.xml
 
 # Android Profiling
 *.hprof
+/app/src/main/assets/gemma-3n-E2B-it-int4.task
