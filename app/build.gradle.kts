@@ -60,4 +60,7 @@ dependencies {
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
+
+    implementation("org.mediapipe:tasks-genai:0.10.11")
+    implementation("com.google.ai.edge.localagents:localagents-rag:0.1.0")
 }
