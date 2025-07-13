@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.contsol.ayra"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -61,6 +61,8 @@ dependencies {
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
 
-    implementation("org.mediapipe:tasks-genai:0.10.11")
     implementation("com.google.ai.edge.localagents:localagents-rag:0.1.0")
+    implementation("com.google.mediapipe:tasks-genai:0.10.22")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:<latest_version>")
 }
