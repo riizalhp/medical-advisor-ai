@@ -1,57 +1,138 @@
 package com.contsol.ayra.data.source.rag
 
+import android.app.Application
 import android.content.Context
-import com.google.ai.edge.rag.RagClient
-import com.google.ai.edge.rag.RagConfig
-import org.mediapipe.tasks.genai.llminference.LlmInference
-import org.mediapipe.tasks.genai.llminference.LlmInference.LlmInferenceOptions
+import com.google.ai.edge.localagents.rag.chains.ChainConfig
+import com.google.ai.edge.localagents.rag.chains.RetrievalAndInferenceChain
+import com.google.ai.edge.localagents.rag.memory.DefaultSemanticTextMemory
+import com.google.ai.edge.localagents.rag.memory.SqliteVectorStore
+import com.google.ai.edge.localagents.rag.models.AsyncProgressListener
+import com.google.ai.edge.localagents.rag.models.Embedder
+import com.google.ai.edge.localagents.rag.models.GeckoEmbeddingModel
+import com.google.ai.edge.localagents.rag.models.LanguageModelResponse
+import com.google.ai.edge.localagents.rag.models.MediaPipeLlmBackend
+import com.google.mediapipe.tasks.genai.llminference.LlmInference.LlmInferenceOptions
+import com.google.ai.edge.localagents.rag.prompt.PromptBuilder
+import com.google.ai.edge.localagents.rag.retrieval.RetrievalConfig
+import com.google.ai.edge.localagents.rag.retrieval.RetrievalConfig.TaskType
+import com.google.ai.edge.localagents.rag.retrieval.RetrievalRequest
+import com.google.common.collect.ImmutableList
+import com.google.common.util.concurrent.FutureCallback
+import com.google.common.util.concurrent.Futures
+import com.google.mediapipe.tasks.genai.llminference.LlmInference
+import com.google.mediapipe.tasks.genai.llminference.LlmInferenceSession
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.util.concurrent.Executors
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.guava.await
+import java.util.Optional
+import kotlin.jvm.optionals.getOrNull
 
-class OnDeviceRagSource(private val context: Context) {
+/** The RAG pipeline for LLM generation. */
+class RagPipeline(private val application: Application) {
+    private val mediaPipeLanguageModelOptions: LlmInferenceOptions =
+        LlmInferenceOptions.builder().setModelPath(
+            GEMMA_MODEL_PATH
+        ).setPreferredBackend(LlmInference.Backend.GPU).setMaxTokens(1024).build()
+    private val mediaPipeLanguageModelSessionOptions: LlmInferenceSession.LlmInferenceSessionOptions =
+        LlmInferenceSession.LlmInferenceSessionOptions.builder().setTemperature(1.0f)
+            .setTopP(0.95f).setTopK(64).build()
+    private val mediaPipeLanguageModel: MediaPipeLlmBackend =
+        MediaPipeLlmBackend(
+            application.applicationContext, mediaPipeLanguageModelOptions,
+            mediaPipeLanguageModelSessionOptions
+        )
 
-    // Initialize the RAG client to search the local DB
-    private val ragClient: RagClient = RagClient.create(
-        RagConfig.builder()
-            .setDatabasePath("/data/data/${context.packageName}/files/knowledge_base.db") // You must copy the DB from assets to internal storage first
-            .build()
+    private val embedder: Embedder<String> = GeckoEmbeddingModel(
+            GECKO_MODEL_PATH,
+            Optional.of(TOKENIZER_MODEL_PATH),
+            USE_GPU_FOR_EMBEDDINGS,
+        )
+
+    private val config = ChainConfig.create(
+        mediaPipeLanguageModel, PromptBuilder(PROMPT_TEMPLATE),
+        DefaultSemanticTextMemory(
+            SqliteVectorStore(768), embedder
+        )
     )
-
-    // Initialize MediaPipe LLM for generation
-    private val llmInference: LlmInference
+    private val retrievalAndInferenceChain = RetrievalAndInferenceChain(config)
 
     init {
-        // First, copy the DB from assets to a place the RAG client can access
-        copyAssetToInternalStorage("knowledge_base.db")
+        Futures.addCallback(
+            mediaPipeLanguageModel.initialize(),
+            object : FutureCallback<Boolean> {
+                override fun onSuccess(result: Boolean) {
+                    // no-op
+                }
 
-        val options = LlmInferenceOptions.builder()
-            .setModelPath("/data/data/${context.packageName}/files/gemma-2b-it-int4.tflite") // Also copy model to internal storage
-            .build()
-        llmInference = LlmInference.createFromOptions(context, options)
+                override fun onFailure(t: Throwable) {
+                    // no-op
+                }
+            },
+            Executors.newSingleThreadExecutor(),
+        )
     }
 
-    fun getAnswer(question: String): String {
-        // 1. Retrieval: Find relevant chunks from the local vector DB
-        val searchResult = ragClient.search(question, 3) // Get top 3 results
-        val contextString = searchResult.results.joinToString("\n") { it.text }
+    fun memorizeChunks(context: Context, filename: String) {
+        val reader = BufferedReader(InputStreamReader(context.assets.open(filename)))
 
-        // 2. Generation: Build the prompt and generate an answer
-        val prompt = """
-        Use the following pieces of context to answer the question at the end. 
-        If you don't know the answer, just say that you don't know, don't try to make up an answer.
-
-        Context:
-        $contextString
-
-        Question:
-        $question
-
-        Answer:
-        """.trimIndent()
-
-        return llmInference.generateResponse(prompt)
+        val sb = StringBuilder()
+        val texts = mutableListOf<String>()
+        generateSequence { reader.readLine() }
+            .forEach { line ->
+                if (line.startsWith(CHUNK_SEPARATOR)) {
+                    if (sb.isNotEmpty()) {
+                        val chunk = sb.toString()
+                        texts.add(chunk)
+                    }
+                    sb.clear()
+                    sb.append(line.removePrefix(CHUNK_SEPARATOR).trim())
+                } else {
+                    sb.append(" ")
+                    sb.append(line)
+                }
+            }
+        if (sb.isNotEmpty()) {
+            texts.add(sb.toString())
+        }
+        reader.close()
+        if (texts.isNotEmpty()) {
+            return memorize(texts)
+        }
     }
 
-    // Helper function to copy files from assets to internal storage
-    private fun copyAssetToInternalStorage(fileName: String) {
-        // ... implementation to copy file from context.assets to context.filesDir ...
+    /** Stores input texts in the semantic text memory. */
+    private fun memorize(facts: List<String>) {
+        val future = config.semanticMemory.getOrNull()?.recordBatchedMemoryItems(ImmutableList.copyOf(facts))
+        future?.get()
+    }
+
+    /** Generates the response from the LLM. */
+    suspend fun generateResponse(
+        prompt: String,
+        callback: AsyncProgressListener<LanguageModelResponse>?,
+    ): String =
+        coroutineScope {
+            val retrievalRequest =
+                RetrievalRequest.create(
+                    prompt,
+                    RetrievalConfig.create(3, 0.0f, TaskType.QUESTION_ANSWERING)
+                )
+            retrievalAndInferenceChain.invoke(retrievalRequest, callback).await().text
+        }
+
+    companion object {
+        private const val COMPUTE_EMBEDDINGS_LOCALLY = true
+        private const val USE_GPU_FOR_EMBEDDINGS = true
+        private const val CHUNK_SEPARATOR = "<chunk_splitter>"
+
+        private const val GEMMA_MODEL_PATH = "/data/local/tmp/gemma-3n-e2b-it-int4.task"
+        private const val TOKENIZER_MODEL_PATH = "/data/local/tmp/sentencepiece.model"
+        private const val GECKO_MODEL_PATH = "/data/local/tmp/gecko_1024_quant.tflite"
+
+        // The prompt template for the RetrievalAndInferenceChain. It takes two inputs: {0}, which is the retrieved context, and {1}, which is the user's query.
+        private const val PROMPT_TEMPLATE: String =
+            "You are an assistant for question-answering tasks. Here are the things I want to remember: {0} Use the things I want to remember, answer the following question the user has: {1}"
     }
 }
