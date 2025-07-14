@@ -16,7 +16,6 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 object LlmInferenceManager {
-
     private var llmInference: LlmInference? = null
     private var isInitializing = false
     private val initializationMutex = Mutex() // To prevent concurrent initialization attempts

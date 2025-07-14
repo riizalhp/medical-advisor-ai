@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.contsol.ayra.R
 import com.contsol.ayra.data.source.local.database.entity.ChatLogEntity
+import com.contsol.ayra.utils.convertTimestampToDate
 
 class ChatAdapter : ListAdapter<ChatLogEntity, RecyclerView.ViewHolder>(ChatDiffCallback()) {
 
@@ -53,15 +54,19 @@ class ChatAdapter : ListAdapter<ChatLogEntity, RecyclerView.ViewHolder>(ChatDiff
 
     inner class UserMessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val messageText: TextView = itemView.findViewById(R.id.textViewMessage)
+        private val messageTimestamp: TextView = itemView.findViewById(R.id.textViewTimestamp)
         fun bind(chatMessage: ChatLogEntity) {
             messageText.text = chatMessage.message_content
+            messageTimestamp.text = convertTimestampToDate(chatMessage.timestamp)
         }
     }
 
     inner class AiMessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val messageText: TextView = itemView.findViewById(R.id.textViewMessage)
+        private val messageTimestamp: TextView = itemView.findViewById(R.id.textViewTimestamp)
         fun bind(chatMessage: ChatLogEntity) {
             messageText.text = chatMessage.message_content
+            messageTimestamp.text = convertTimestampToDate(chatMessage.timestamp)
         }
     }
 

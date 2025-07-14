@@ -7,4 +7,5 @@
     <string name="send">Send</string>
     <string name="this_is_a_user_message">This is a user message</string>
     <string name="hello_ayra">Hello AYRA!</string>
+    <string name="timestamp_example">22.09</string>
 </resources>

@@ -88,7 +88,6 @@ class ChatActivity : AppCompatActivity() {
                 addNewMessage(typingMessage)
                 val temporaryTypingMessageIndex = messagesList.size -1
 
-
                 Log.d("ChatActivity", "Requesting AI response for: $originalMessage")
                 val aiResponseText = LlmInferenceManager.run(originalMessage)
 
