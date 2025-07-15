@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:padding="16dp">
+
+    <!-- Greeting & Check-in -->
+    <TextView
+        android:id="@+id/tvGreeting"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/text_home_greeting"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvReminder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/text_home_jangan_lupa"
+        android:textSize="14sp"
+        app:layout_constraintStart_toStartOf="@+id/tvGreeting"
+        app:layout_constraintTop_toBottomOf="@+id/tvGreeting"
+        android:layout_marginTop="4dp" />
+
+    <Button
+        android:id="@+id/btnCheckIn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/text_home_check_in"
+        android:backgroundTint="@color/secondary_default"
+        android:textColor="@android:color/white"
+        android:paddingHorizontal="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Saran AI -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardSaranAI"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="@color/secondary_default"
+
+        app:layout_constraintTop_toBottomOf="@+id/tvReminder"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tvSaranTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/text_home_tittle_saran"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:textColor="@android:color/white"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <TextView
+                android:id="@+id/tvSaranDesc"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/text_home_isi_saran"
+                android:textColor="@android:color/white"
+                android:textSize="13sp"
+                android:layout_marginTop="4dp"
+                app:layout_constraintTop_toBottomOf="@id/tvSaranTitle"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <Button
+                android:id="@+id/btnMulaiKonsultasi"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/text_home_btn_konsultasi"
+                android:textAllCaps="true"
+                android:textColor="@android:color/black"
+                android:backgroundTint="@color/accent_default"
+                android:layout_marginTop="8dp"
+                app:layout_constraintTop_toBottomOf="@id/tvSaranDesc"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Tips Sehat Hari Ini -->
+    <TextView
+        android:id="@+id/tvTipsTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/text_home_tittle_tips"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/cardSaranAI"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Carousel dummy -->
+    <FrameLayout
+        android:id="@+id/carouselTips"
+        android:layout_width="0dp"
+        android:layout_height="120dp"
+        android:background="#F2EEF6"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/tvTipsTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- GANTI PAKE VIEW PAGER ENTAR -->
+    </FrameLayout>
+
+    <!-- Ringkasan Aktivitas -->
+    <TextView
+        android:id="@+id/tvRingkasan"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/text_home_tittle_summary"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        app:layout_constraintTop_toTopOf="@id/btnLihatSelengkapnya"
+        app:layout_constraintBottom_toBottomOf="@id/btnLihatSelengkapnya"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/btnLihatSelengkapnya"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/text_home_see_all"
+        android:textAllCaps="true"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@color/secondary_default"
+        android:paddingHorizontal="12dp"
+        android:textSize="11sp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/carouselTips"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Mood & Minum Air -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/moodAndAir"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/btnLihatSelengkapnya"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Mood Card -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardMood"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginEnd="8dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="@color/main_100"
+            app:cardUseCompatPadding="true"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/cardAir"
+            app:layout_constraintBottom_toBottomOf="@id/cardAir"
+            app:layout_constraintWidth_percent="0.5">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="12dp">
+
+                <TextView
+                    android:id="@+id/tvMoodTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/text_home_today_mood"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" />
+
+                <TextView
+                    android:id="@+id/tvMoodDesc"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/text_home_isi_mood"
+                    android:textSize="12sp"
+                    android:layout_marginTop="4dp"
+                    android:maxLines="6"
+                    android:ellipsize="end"
+                    app:layout_constraintTop_toBottomOf="@id/tvMoodTitle"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Minum Air Card  -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/cardAir"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="@+id/cardMood"
+            app:layout_constraintStart_toEndOf="@id/cardMood"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:padding="16dp"
+            app:layout_constraintWidth_percent="0.5">
+
+                <TextView
+                    android:id="@+id/tvAirTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/text_home_minum"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:textColor="@color/black"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
+
+                <FrameLayout
+                    android:id="@+id/progressContainer"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:layout_marginTop="16dp"
+                    app:layout_constraintTop_toBottomOf="@id/tvAirTitle"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent">
+
+                    <com.google.android.material.progressindicator.CircularProgressIndicator
+                        android:id="@+id/circularProgressMinum"
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:indeterminate="false"
+                        android:max="100"
+                        android:progress="30"
+                        app:trackThickness="4dp"
+                        app:indicatorSize="80dp"
+                        app:indicatorInset="0dp"
+                        app:indicatorColor="@color/main_default"
+                        app:trackColor="@color/secondary_default"
+                        app:trackCornerRadius="4dp"/>
+
+                    <TextView
+                        android:id="@+id/tvAirProgress"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="@string/text_home_drink_progress"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/black" />
+
+                </FrameLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
