@@ -28,6 +28,7 @@
     <string name="this_is_a_user_message">This is a user message</string>
     <string name="hello_ayra">Hello AYRA!</string>
     <string name="timestamp_example">22.09</string>
+    <string name="fab">fab</string>
     <string name="this_is_image_description">This is image description</string>
     <string name="assistant">Assistant</string>
     <string name="ayra_chat_menu">Ayra Chat Menu</string>

@@ -8,6 +8,10 @@
         android:id="@+id/insightFragment"
         android:icon="@drawable/ic_insight"
         android:title="@string/text_menu_insight" />
+
+    <item
+        android:id="@+id/itemNone"
+        android:title="" />
     <item
         android:id="@+id/historyFragment"
         android:icon="@drawable/ic_history"

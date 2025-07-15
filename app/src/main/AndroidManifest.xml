@@ -21,7 +21,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.chat.ChatActivity"
+            android:name=".presentation.chat.ChatActivity"
             android:exported="false"
             android:label="Chat"
             android:parentActivityName=".presentation.main.MainActivity"
