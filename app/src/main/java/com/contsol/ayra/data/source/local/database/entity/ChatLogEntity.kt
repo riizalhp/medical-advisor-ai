@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 data class ChatLogEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val message_content: String,
+    val image_url: String? = null,
     val is_user_message: Boolean,
     val timestamp: Long = System.currentTimeMillis(),
 )

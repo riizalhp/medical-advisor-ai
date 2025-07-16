@@ -3,9 +3,12 @@
     <string name="this_is_an_ayra_message">This is an AYRA message</string>
     <string name="welcome_to_ayra">Welcome to AYRA!</string>
     <string name="open_chat">Open Chat</string>
-    <string name="type_a_message">Type a message…</string>
+    <string name="type_a_message">Ketik disini ya</string>
     <string name="send">Send</string>
     <string name="this_is_a_user_message">This is a user message</string>
     <string name="hello_ayra">Hello AYRA!</string>
     <string name="timestamp_example">22.09</string>
+    <string name="this_is_image_description">This is image description</string>
+    <string name="assistant">Assistant</string>
+    <string name="ayra_chat_menu">Ayra Chat Menu</string>
 </resources>
