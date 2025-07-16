@@ -2,8 +2,8 @@ package com.contsol.ayra.ui.chat
 
 import android.os.Bundle
 import android.util.Log
-import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope // Import for lifecycleScope
@@ -19,7 +19,7 @@ class ChatActivity : AppCompatActivity() {
 
     private lateinit var recyclerViewChat: RecyclerView
     private lateinit var editTextMessage: EditText
-    private lateinit var buttonSend: Button
+    private lateinit var buttonSend: ImageButton
     private lateinit var chatAdapter: ChatAdapter
     private val messagesList = mutableListOf<ChatLogEntity>()
 
@@ -59,7 +59,7 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun sendMessage(text: String) {
-        val message = ChatLogEntity(message_content = text, is_user_message = true)
+        val message = ChatLogEntity(message_content = text, is_user_message = true, timestamp = System.currentTimeMillis())
         addNewMessage(message)
     }
 
