@@ -45,6 +45,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
+    implementation(libs.androidx.recyclerview)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.core.ktx)
     testImplementation(libs.junit)
@@ -60,6 +61,7 @@ dependencies {
     implementation(libs.room.ktx)
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
+    implementation(libs.tasks.genai)
     ksp(libs.room.compiler)
 
     implementation("com.google.ai.edge.localagents:localagents-rag:0.1.0")
