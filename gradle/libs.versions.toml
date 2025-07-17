@@ -15,7 +15,6 @@ lifecycle = "2.9.1"
 fragment-ktx = "1.8.8"
 navigationFragmentKtx = "2.9.1"
 navigationUiKtx = "2.9.1"
-room = "2.7.2"
 tasksGenai = "0.10.24"
 
 [libraries]
@@ -44,10 +43,6 @@ fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref
 androidx-navigation-fragment-ktx = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigationFragmentKtx" }
 androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigationUiKtx" }
 
-#room
-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 tasks-genai = { module = "com.google.mediapipe:tasks-genai", version.ref = "tasksGenai" }
 
 [plugins]

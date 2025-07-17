@@ -1,26 +1,49 @@
 package com.contsol.ayra.data.source.local.database.dao
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
-import androidx.room.Update
-import com.contsol.ayra.data.source.local.database.entity.HealthMetricEntity
+import android.content.ContentValues
+import android.content.Context
+import androidx.core.database.getStringOrNull
+import com.contsol.ayra.data.source.local.database.AppSQLiteHelper
+import com.contsol.ayra.data.source.local.database.model.HealthMetric
 
-@Dao
-interface HealthMetricDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(healthMetric: HealthMetricEntity): Long
+class HealthMetricDao(context: Context) {
 
-    @Query("SELECT * FROM HealthMetricEntity")
-    suspend fun getMetrics(): List<HealthMetricEntity>?
+    private val dbHelper = AppSQLiteHelper(context)
 
-    @Query("SELECT * FROM HealthMetricEntity WHERE timestamp = :date")
-    suspend fun getMetricForDate(date: Long): HealthMetricEntity?
+    fun insert(healthMetric: HealthMetric): Long {
+        val db = dbHelper.writableDatabase
+        val values = ContentValues().apply {
+            put("metric_type", healthMetric.metricType)
+            put("value", healthMetric.value)
+            put("timestamp", healthMetric.timestamp)
+            put("notes", healthMetric.notes)
+        }
+        return db.insert("HealthMetric", null, values)
+    }
 
-    @Query("SELECT * FROM HealthMetricEntity WHERE timestamp >= :startOfToday AND timestamp < :startOfTomorrow")
-    suspend fun getTodayMetric(startOfToday: Long, startOfTomorrow: Long): HealthMetricEntity?
+    fun getAll(): List<HealthMetric> {
+        val db = dbHelper.readableDatabase
+        val cursor = db.rawQuery("SELECT * FROM HealthMetric ORDER BY timestamp ASC", null)
+        val healthMetrics = mutableListOf<HealthMetric>()
 
-    @Update
-    suspend fun updateMetric(healthMetric: HealthMetricEntity)
+        cursor.use {
+            while (it.moveToNext()) {
+                val healthMetric = HealthMetric(
+                    id = it.getLong(it.getColumnIndexOrThrow("id")),
+                    metricType = it.getString(it.getColumnIndexOrThrow("metric_type")),
+                    value = it.getString(it.getColumnIndexOrThrow("value")),
+                    timestamp = it.getLong(it.getColumnIndexOrThrow("timestamp")),
+                    notes = it.getStringOrNull(it.getColumnIndexOrThrow("notes")),
+                )
+                healthMetrics.add(healthMetric)
+            }
+        }
+
+        return healthMetrics
+    }
+
+    fun deleteAll() {
+        val db = dbHelper.writableDatabase
+        db.delete("HealthMetric", null, null)
+    }
 }
