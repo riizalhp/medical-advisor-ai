@@ -1,5 +1,25 @@
 <resources>
     <string name="app_name">AYRA</string>
+    <string name="text_menu_home">Home</string>
+    <string name="text_menu_insight">Insight</string>
+    <string name="text_menu_history">History</string>
+    <string name="text_menu_profile">Profile</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="text_home_greeting">Selamat Pagi, User</string>
+    <string name="text_home_jangan_lupa">Jangan lupa minum air putih</string>
+    <string name="text_home_check_in">CHECK IN</string>
+    <string name="text_home_tittle_saran">Saran AI Hari ini</string>
+    <string name="text_home_isi_saran">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum vestibulum.</string>
+    <string name="text_home_btn_konsultasi">MULAI KONSULTASI!</string>
+    <string name="text_home_tittle_tips">Tips Sehat Hari ini</string>
+    <string name="text_home_tittle_summary">Ringkasan Aktivitas</string>
+    <string name="text_home_see_all">LIHAT SELENGKAPNYA</string>
+    <string name="text_home_today_mood">Mood Hari Ini</string>
+    <string name="text_home_isi_mood">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum vestibulum.</string>
+    <string name="text_home_minum">Minum Air Putih</string>
+    <string name="text_home_progress_minum">30%</string>
+    <string name="text_home_drink_progress">30%</string>
     <string name="this_is_an_ayra_message">This is an AYRA message</string>
     <string name="welcome_to_ayra">Welcome to AYRA!</string>
     <string name="open_chat">Open Chat</string>
@@ -8,6 +28,7 @@
     <string name="this_is_a_user_message">This is a user message</string>
     <string name="hello_ayra">Hello AYRA!</string>
     <string name="timestamp_example">22.09</string>
+    <string name="fab">fab</string>
     <string name="this_is_image_description">This is image description</string>
     <string name="assistant">Assistant</string>
     <string name="ayra_chat_menu">Ayra Chat Menu</string>
