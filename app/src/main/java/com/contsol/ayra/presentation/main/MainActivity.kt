@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -14,7 +13,6 @@ import com.contsol.ayra.R
 import com.contsol.ayra.databinding.ActivityMainBinding
 import com.contsol.ayra.data.ai.LlmInferenceManager
 import com.contsol.ayra.presentation.chat.ChatActivity
-import com.google.android.material.snackbar.Snackbar
 
 class MainActivity : AppCompatActivity() {
     private var isLLMReady = false

@@ -1,20 +1,46 @@
 package com.contsol.ayra.data.source.local.database.dao
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
-import androidx.room.Update
-import com.contsol.ayra.data.source.local.database.entity.UserEntity
+import android.content.ContentValues
+import android.content.Context
+import com.contsol.ayra.data.source.local.database.AppSQLiteHelper
+import com.contsol.ayra.data.source.local.database.model.User
 
-@Dao
-interface UserDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(user: UserEntity): Long
+class UserDao(context: Context) {
 
-    @Query("SELECT * FROM UserEntity LIMIT 1")
-    suspend fun getUser(): UserEntity?
+    private val dbHelper = AppSQLiteHelper(context)
 
-    @Update
-    suspend fun updateUser(user: UserEntity)
+    fun insert(user: User): Long {
+        val db = dbHelper.writableDatabase
+        val values = ContentValues().apply {
+            put("name", user.name)
+            put("gender", user.gender)
+            put("created_at", user.createdAt)
+        }
+        return db.insert("User", null, values)
+    }
+
+    fun getUser(): User {
+        val db = dbHelper.readableDatabase
+        val cursor = db.rawQuery("SELECT * FROM User LIMIT 1", null)
+        val users = mutableListOf<User>()
+
+        cursor.use {
+            while (it.moveToNext()) {
+                val user = User(
+                    id = it.getLong(it.getColumnIndexOrThrow("id")),
+                    name = it.getString(it.getColumnIndexOrThrow("name")),
+                    gender = it.getString(it.getColumnIndexOrThrow("gender")),
+                    createdAt = it.getLong(it.getColumnIndexOrThrow("created_at")),
+                )
+                users.add(user)
+            }
+        }
+
+        return users[0]
+    }
+
+    fun deleteUser() {
+        val db = dbHelper.writableDatabase
+        db.delete("User", null, null)
+    }
 }

@@ -60,10 +60,6 @@ dependencies {
     implementation(libs.fragment.ktx)
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
-    implementation(libs.room.ktx)
-    implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
     implementation(libs.tasks.genai)
     implementation(libs.koin.android)
-    ksp(libs.room.compiler)
 }

@@ -10,13 +10,13 @@
     <string name="text_home_jangan_lupa">Jangan lupa minum air putih</string>
     <string name="text_home_check_in">CHECK IN</string>
     <string name="text_home_tittle_saran">Saran AI Hari ini</string>
-    <string name="text_home_isi_saran">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum vestibulum.</string>
+    <string name="text_home_isi_saran">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum.</string>
     <string name="text_home_btn_konsultasi">MULAI KONSULTASI!</string>
     <string name="text_home_tittle_tips">Tips Sehat Hari ini</string>
     <string name="text_home_tittle_summary">Ringkasan Aktivitas</string>
     <string name="text_home_see_all">LIHAT SELENGKAPNYA</string>
     <string name="text_home_today_mood">Mood Hari Ini</string>
-    <string name="text_home_isi_mood">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum vestibulum.</string>
+    <string name="text_home_isi_mood">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum.</string>
     <string name="text_home_minum">Minum Air Putih</string>
     <string name="text_home_progress_minum">30%</string>
     <string name="text_home_drink_progress">30%</string>
