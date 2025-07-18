@@ -1,8 +1,15 @@
 package com.contsol.ayra.data.ai
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.util.Log
+import com.google.mediapipe.framework.image.BitmapImageBuilder
+import com.google.mediapipe.framework.image.MPImage
+import com.google.mediapipe.tasks.genai.llminference.GraphOptions
 import com.google.mediapipe.tasks.genai.llminference.LlmInference
+import com.google.mediapipe.tasks.genai.llminference.LlmInferenceSession
+import com.google.mediapipe.tasks.genai.llminference.LlmInferenceSession.LlmInferenceSessionOptions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -12,41 +19,24 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.net.HttpURLConnection
-import java.net.URL
 
 object LlmInferenceManager {
     private var llmInference: LlmInference? = null
     private var isInitializing = false
-    private val initializationMutex = Mutex() // To prevent concurrent initialization attempts
-    private var initializationListeners = mutableListOf<() -> Unit>() // To queue listeners if init is in progress
+    private val initializationMutex = Mutex()
+    private var initializationListeners = mutableListOf<() -> Unit>()
 
-    // --- Configuration ---
-    // Option 1: Download model (uncomment the URL and choose this option in initializeIfNeeded)
-    // private const val MODEL_DOWNLOAD_URL = "YOUR_MODEL_DOWNLOAD_URL_HERE" // Replace if using download
-
-    // Option 2: Model from assets (ensure this matches the name in your assets folder)
     private const val MODEL_ASSET_NAME = "gemma-3n-E2B-it-int4.task"
-    private const val MODEL_FILE_NAME = "gemma-3n-E2B-it-int4.task" // Name for the file in internal storage
+    private const val MODEL_FILE_NAME = "gemma-3n-E2B-it-int4.task"
 
-    /**
-     * Initializes the LlmInference engine if it hasn't been already.
-     * This method handles model acquisition (download or copy from assets) and setup.
-     *
-     * @param context Application context.
-     * @param onInitialized Optional callback that is invoked on the main thread
-     *                      once initialization is successful.
-     */
     fun initializeIfNeeded(context: Context, onInitialized: () -> Unit = {}) {
-        CoroutineScope(Dispatchers.Main).launch { // Launch on Main, but heavy work will be on IO
+        CoroutineScope(Dispatchers.Main).launch {
             initializationMutex.withLock {
                 if (isInitialized()) {
-                    Log.d("LlmInferenceManager", "Already initialized.")
                     onInitialized()
                     return@launch
                 }
                 if (isInitializing) {
-                    Log.d("LlmInferenceManager", "Initialization already in progress. Adding listener.")
                     initializationListeners.add(onInitialized)
                     return@launch
                 }
@@ -54,21 +44,19 @@ object LlmInferenceManager {
             }
 
             Log.d("LlmInferenceManager", "Starting model initialization...")
-
-            // Choose your model acquisition strategy:
-            // val modelFile = acquireModelByDownloading(context.applicationContext) // Option 1: Download
-            val modelFile = acquireModelFromAssets(context.applicationContext)    // Option 2: Copy from Assets
+            val modelFile = acquireModelFromAssets(context.applicationContext)
 
             if (modelFile != null && modelFile.exists()) {
                 Log.d("LlmInferenceManager", "Model Path: ${modelFile.absolutePath}")
                 try {
-                    llmInference = withContext(Dispatchers.IO) { // LlmInference.createFromOptions can be blocking
+                    llmInference = withContext(Dispatchers.IO) {
                         val taskOptions = LlmInference.LlmInferenceOptions.builder()
                             .setModelPath(modelFile.absolutePath)
-                            .setMaxTopK(64) // Example: from previous usage
-                            // .setTopK(1) // Common for some models, adjust as needed
-                            // .setTemperature(0.7f) // Adjust creativity
-                            // .setRandomSeed(101)   // For reproducibility
+                            .setMaxNumImages(1)
+                            // .setMaxTopK(64) // Moved to session options as per reference
+                            // Vision modality might also be enabled here for some models globally,
+                            // but your reference shows it at the session level.
+                            // .setGraphOptions(GraphOptions.newBuilder().setEnableVisionModality(true).build()) // Example global setting
                             .build()
                         LlmInference.createFromOptions(context.applicationContext, taskOptions)
                     }
@@ -82,145 +70,136 @@ object LlmInferenceManager {
                 } catch (e: Exception) {
                     Log.e("LlmInferenceManager", "Failed to initialize LlmInference: ${e.message}", e)
                     initializationMutex.withLock { isInitializing = false }
-                    // Optionally notify listeners about failure here
                 }
             } else {
                 Log.e("LlmInferenceManager", "Model file not available. Initialization failed.")
                 initializationMutex.withLock { isInitializing = false }
-                // Optionally notify listeners about failure here
             }
         }
     }
 
-    /**
-     * Option 1: Acquires the model by downloading it if it doesn't exist.
-     */
-    @Suppress("unused") // Keep if you might switch to downloading
-    private suspend fun acquireModelByDownloading(context: Context): File? {
-        val modelFile = File(context.filesDir, MODEL_FILE_NAME)
-        val modelDownloadUrl = "YOUR_MODEL_DOWNLOAD_URL_HERE" // ** IMPORTANT: SET THIS IF DOWNLOADING **
-
-        if (modelDownloadUrl.isNotEmpty()) {
-            Log.e("LlmInferenceManager", "MODEL_DOWNLOAD_URL is not set. Cannot download model.")
-            return null
-        }
-
-        if (modelFile.exists() && modelFile.length() > 0) { // Check length to ensure it's not an empty/failed download
-            Log.d("LlmInferenceManager", "Model already exists at ${modelFile.absolutePath}")
-            return modelFile
-        }
-
-        Log.d("LlmInferenceManager", "Downloading model to ${modelFile.absolutePath}...")
-        return try {
-            withContext(Dispatchers.IO) {
-                val url = URL(modelDownloadUrl)
-                val connection = url.openConnection() as HttpURLConnection
-                connection.connectTimeout = 15000 // 15 seconds
-                connection.readTimeout = 15000  // 15 seconds
-                connection.connect()
-
-                if (connection.responseCode == HttpURLConnection.HTTP_OK) {
-                    connection.inputStream.use { input ->
-                        FileOutputStream(modelFile).use { output ->
-                            input.copyTo(output)
-                        }
-                    }
-                    Log.d("LlmInferenceManager", "Model downloaded successfully.")
-                    modelFile
-                } else {
-                    Log.e("LlmInferenceManager", "Model download failed. Server responded with ${connection.responseCode}")
-                    modelFile.delete() // Clean up
-                    null
-                }
-            }
-        } catch (e: IOException) {
-            Log.e("LlmInferenceManager", "Model download failed: ${e.message}", e)
-            modelFile.delete() // Clean up
-            null
-        }
-    }
-
-    /**
-     * Option 2: Acquires the model by copying it from the app's assets folder.
-     */
     private suspend fun acquireModelFromAssets(context: Context): File? {
         val modelFile = File(context.filesDir, MODEL_FILE_NAME)
-
-        // Avoid re-copying if it already exists and seems valid (e.g. check size or a version flag)
-        // For simplicity here, we'll just check existence. For production, you might add versioning.
-        if (modelFile.exists() && modelFile.length() > 0) {
-            Log.d("LlmInferenceManager", "Model already exists in internal storage (from assets): ${modelFile.absolutePath}")
-            return modelFile
-        }
-        // ACTIVATE THIS COMMENT WHEN YOUR INTERNAL STORAGE MODEL CORRUPT
-        /* if (modelFile.exists()) {
+        if (modelFile.exists()) {
             Log.d("LlmInferenceManager", "Existing model found at ${modelFile.absolutePath}. Deleting it to force re-copy from assets.")
-            val deleted = withContext(Dispatchers.IO) { // Perform file deletion on IO dispatcher
-                try {
-                    modelFile.delete()
-                } catch (e: Exception) {
-                    Log.e("LlmInferenceManager", "Failed to delete existing model: ${e.message}", e)
-                    false // Return false if deletion fails
+            val deleted = withContext(Dispatchers.IO) {
+                try { modelFile.delete() } catch (e: Exception) {
+                    Log.e("LlmInferenceManager", "Failed to delete existing model: ${e.message}", e); false
                 }
             }
-            if (!deleted && modelFile.exists()) { // Double check if deletion failed and file still exists
-                Log.w("LlmInferenceManager", "Could not delete the existing model. Re-copy might be problematic or use the old file.")
-                // Depending on your requirements, you might want to return null here
-                // or proceed, knowing it might use an older/undeleted file.
-                // For a guaranteed re-copy, failing here would be safer if deletion is critical.
-            } else if (deleted) {
-                Log.d("LlmInferenceManager", "Successfully deleted existing model.")
-            }
-        } */
-
+            if (!deleted && modelFile.exists()) Log.w("LlmInferenceManager", "Could not delete existing model.")
+            else if (deleted) Log.d("LlmInferenceManager", "Successfully deleted existing model.")
+        }
         Log.d("LlmInferenceManager", "Copying model from assets to ${modelFile.absolutePath}...")
         return try {
             withContext(Dispatchers.IO) {
-                context.assets.open(MODEL_ASSET_NAME).use { inputStream ->
-                    FileOutputStream(modelFile).use { outputStream ->
-                        inputStream.copyTo(outputStream)
-                    }
-                }
+                context.assets.open(MODEL_ASSET_NAME).use { input -> FileOutputStream(modelFile).use { output -> input.copyTo(output) } }
                 Log.d("LlmInferenceManager", "Model copied from assets successfully.")
                 modelFile
             }
         } catch (e: IOException) {
             Log.e("LlmInferenceManager", "Failed to copy model from assets: ${e.message}", e)
-            modelFile.delete() // Clean up partially copied file if error occurs
+            if (modelFile.exists()) modelFile.delete()
             null
         }
     }
 
-
     fun isInitialized(): Boolean = llmInference != null
 
-    /**
-     * Generates a response from the LLM based on the given prompt.
-     * This is a suspend function and should be called from a coroutine.
-     *
-     * @param prompt The input string to the LLM.
-     * @return The LLM's response as a String, or null if an error occurred or not initialized.
-     */
-    suspend fun run(prompt: String): String? = withContext(Dispatchers.IO) {
+    suspend fun run(prompt: String): String = withContext(Dispatchers.IO) {
         if (!isInitialized()) {
-            Log.e("LlmInferenceManager", "LLM not initialized. Call initializeIfNeeded() first.")
             return@withContext "Error: AYRA is not ready yet. Please wait for initialization."
         }
         try {
-            Log.d("LlmInferenceManager", "Generating response for prompt: \"$prompt\"")
-            val response = llmInference?.generateResponse(prompt)
-            Log.d("LlmInferenceManager", "LLM Raw Response: \"$response\"")
-            response
+            // For simple text, LlmInference.generateResponse might be simpler
+            // or you can use a session here too for consistency.
+            // val response = llmInference?.generateResponse(prompt)
+
+            // Using session for text for consistency (optional)
+            val sessionOptions = LlmInferenceSessionOptions.builder()
+                // .setTopK(64) // Example, adjust as needed
+                // .setTemperature(0.7f) // Example
+                .build()
+
+            llmInference?.let { inferenceInstance ->
+                val session = LlmInferenceSession.createFromOptions(inferenceInstance, sessionOptions)
+                session.use { // Use try-with-resources for the session
+                    it.addQueryChunk(prompt)
+                    val response = it.generateResponse()
+                    Log.d("LlmInferenceManager", "LLM Raw Response: \"$response\"")
+                    response
+                }
+            } ?: "Error: LlmInference instance is null."
+
         } catch (e: Exception) {
             Log.e("LlmInferenceManager", "Error generating LLM response: ${e.message}", e)
             "Error: I encountered a problem trying to respond."
         }
     }
 
-    /**
-     * Closes the LlmInference engine and releases resources.
-     * Should be called when the LLM is no longer needed (e.g., in Application.onTerminate).
-     */
+    suspend fun runWithImage(prompt: String, imagePath: String): String? = withContext(Dispatchers.IO) {
+        if (!isInitialized()) {
+            Log.e("LlmInferenceManager", "LLM not initialized. Call initializeIfNeeded() first.")
+            return@withContext "Error: AYRA is not ready yet. Please wait for initialization."
+        }
+
+        val currentLlmInference = llmInference ?: run {
+            Log.e("LlmInferenceManager", "LlmInference instance is null in runWithImage.")
+            return@withContext "Error: LlmInference instance is null."
+        }
+
+        try {
+            Log.d("LlmInferenceManager", "Generating response for prompt: \"$prompt\" with image: $imagePath")
+
+            val bitmap: Bitmap = BitmapFactory.decodeFile(imagePath) ?: run {
+                Log.e("LlmInferenceManager", "Bitmap could not be decoded from path: $imagePath")
+                return@withContext "Error: Could not load the image."
+            }
+
+            // Create MPImage from Bitmap
+            val mpImage: MPImage = try {
+                BitmapImageBuilder(bitmap).build()
+            } catch (e: Exception) {
+                Log.e("LlmInferenceManager", "Error building MPImage: ${e.message}", e)
+                bitmap.recycle() // Recycle bitmap if MPImage creation fails
+                return@withContext "Error: Could not create MPImage."
+            }
+
+            // Session options, enabling vision modality as per your reference
+            val sessionOptions = LlmInferenceSessionOptions.builder()
+                .setTopK(10) // From your reference
+                .setTemperature(0.4f) // From your reference
+                .setGraphOptions(GraphOptions.builder().setEnableVisionModality(true).build())
+                .build()
+
+            // Create a session, add query and image, then generate response
+            val session = LlmInferenceSession.createFromOptions(currentLlmInference, sessionOptions)
+            val response = session.use { llmSession -> // .use ensures session is closed
+                llmSession.addQueryChunk(prompt)
+                llmSession.addImage(mpImage)
+                val result = llmSession.generateResponse()
+                Log.d("LlmInferenceManager", "LLM Raw Response with image: \"$result\"")
+                result
+            }
+
+            // Recycle the bitmap after use, as MPImage might hold a reference or copy.
+            // If BitmapImageBuilder.build() copies the data, this is safe.
+            // If it holds a direct reference and the session is done, it should also be safe.
+            // For safety, recycle if you created it and are done with it.
+            if (!bitmap.isRecycled) {
+                bitmap.recycle()
+            }
+            // MPImage does not have a recycle() method. Its resources are managed internally
+            // and by the session.
+
+            response
+
+        } catch (e: Exception) {
+            Log.e("LlmInferenceManager", "Error generating LLM response with image: ${e.message}", e)
+            "Error: I encountered a problem trying to respond with the image."
+        }
+    }
+
     fun close() {
         Log.d("LlmInferenceManager", "Closing LlmInference...")
         try {

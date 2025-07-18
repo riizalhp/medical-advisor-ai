@@ -53,6 +53,46 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/attachmentPreviewContainer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="8dp"
+        android:visibility="gone"
+    tools:visibility="visible"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintBottom_toTopOf="@+id/inputLayout">
+
+    <ImageView
+        android:id="@+id/imageViewAttachmentPreview"
+        android:layout_width="96dp"
+        android:layout_height="96dp"
+        android:contentDescription="@string/attachment_preview"
+        android:scaleType="centerCrop"
+        android:background="@android:color/darker_gray"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:srcCompat="@tools:sample/avatars" />
+
+    <ImageButton
+        android:id="@+id/buttonRemoveAttachment"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/ic_remove"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:tintMode="multiply"
+        app:tint="@color/dark_700"
+        app:layout_constraintTop_toTopOf="@id/imageViewAttachmentPreview"
+        app:layout_constraintStart_toEndOf="@id/imageViewAttachmentPreview"
+        android:contentDescription="@string/remove_attachment" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
     <LinearLayout
         android:id="@+id/inputLayout"
         android:layout_width="0dp"
@@ -81,7 +121,7 @@
             android:id="@+id/buttonAttach"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:src="@drawable/ic_attach"
+            android:src="@drawable/ic_attach_new"
             android:contentDescription="@string/send"
             android:layout_gravity="end|center_vertical"
             android:background="?attr/selectableItemBackgroundBorderless"
@@ -117,7 +157,7 @@
                 android:id="@+id/buttonSend"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:src="@drawable/ic_send"
+                android:src="@drawable/ic_send_svg"
                 android:contentDescription="@string/send"
                 android:layout_gravity="end|center_vertical"
                 android:background="?attr/selectableItemBackgroundBorderless"
