@@ -1,4 +1,4 @@
-package com.contsol.ayra.ui.chat // Use your actual package name
+package com.contsol.ayra.presentation.chat // Use your actual package name
 
 import android.view.LayoutInflater
 import android.view.View

@@ -1,4 +1,4 @@
-package com.contsol.ayra.ui.chat
+package com.contsol.ayra.presentation.chat
 
 import android.os.Bundle
 import android.util.Log
