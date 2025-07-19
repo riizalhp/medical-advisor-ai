@@ -31,31 +31,25 @@ import java.util.Optional
 import kotlin.jvm.optionals.getOrNull
 
 /** The RAG pipeline for LLM generation. */
-class RagPipeline(private val application: Application) {
+class RagPipeline(application: Application, gemmaPath: String) {
     private val mediaPipeLanguageModelOptions: LlmInferenceOptions =
-        LlmInferenceOptions.builder()
-            .setModelPath(GEMMA_MODEL_PATH)
-            .setPreferredBackend(LlmInference.Backend.CPU)
-            .setMaxTokens(1024)
-            .build()
+        LlmInferenceOptions.builder().setModelPath(
+            gemmaPath
+        ).setPreferredBackend(LlmInference.Backend.CPU).setMaxTokens(1024).build()
 
     private val mediaPipeLanguageModelSessionOptions: LlmInferenceSession.LlmInferenceSessionOptions =
-        LlmInferenceSession.LlmInferenceSessionOptions.builder()
-            .setTemperature(1.0f)
-            .setTopP(0.95f)
-            .setTopK(64)
-            .build()
+        LlmInferenceSession.LlmInferenceSessionOptions.builder().setTemperature(1.0f)
+            .setTopP(0.95f).setTopK(64).build()
 
     private val mediaPipeLanguageModel: MediaPipeLlmBackend =
         MediaPipeLlmBackend(
-            application.applicationContext,
-            mediaPipeLanguageModelOptions,
+            application.applicationContext, mediaPipeLanguageModelOptions,
             mediaPipeLanguageModelSessionOptions
         )
 
     private val embedder: Embedder<String> = GeckoEmbeddingModel(
         GECKO_MODEL_PATH,
-        Optional.of(TOKENIZER_MODEL_PATH),
+        Optional.ofNullable(TOKENIZER_MODEL_PATH),
         USE_GPU_FOR_EMBEDDINGS,
     )
 
@@ -63,7 +57,7 @@ class RagPipeline(private val application: Application) {
         mediaPipeLanguageModel,
         PromptBuilder(PROMPT_TEMPLATE),
         DefaultSemanticTextMemory(
-            SqliteVectorStore(768), // Gecko dim = 768
+            SqliteVectorStore(768),
             embedder
         )
     )
@@ -71,15 +65,16 @@ class RagPipeline(private val application: Application) {
     private val retrievalAndInferenceChain = RetrievalAndInferenceChain(config)
 
     init {
+        Log.i("RagPipeline", "Initializing MediaPipe language model...")
         Futures.addCallback(
             mediaPipeLanguageModel.initialize(),
             object : FutureCallback<Boolean> {
                 override fun onSuccess(result: Boolean) {
-                    // no-op
+                    Log.i("RagPipeline", "MediaPipe language model initialized")
                 }
 
                 override fun onFailure(t: Throwable) {
-                    // no-op
+                    Log.e("RagPipeline", "MediaPipe language model initialization failed", t)
                 }
             },
             Executors.newSingleThreadExecutor(),
@@ -115,17 +110,15 @@ class RagPipeline(private val application: Application) {
         }
     }
 
-    /** Stores input texts in the semantic text memory. */
     private fun memorize(facts: List<String>) {
         val future = config.semanticMemory.getOrNull()?.recordBatchedMemoryItems(ImmutableList.copyOf(facts))
         future?.get()
-        Log.d("RagPipeline", "Memorizing facts: $facts")
+        Log.d("RagPipeline", "Memorized facts: $facts")
     }
 
-    /** Generates the response from the LLM. */
     suspend fun generateResponse(
         prompt: String,
-        callback: AsyncProgressListener<LanguageModelResponse>? = null,
+        callback: AsyncProgressListener<LanguageModelResponse>?
     ): String = coroutineScope {
         val retrievalRequest = RetrievalRequest.create(
             prompt,
@@ -135,16 +128,12 @@ class RagPipeline(private val application: Application) {
     }
 
     companion object {
-        private const val COMPUTE_EMBEDDINGS_LOCALLY = true
-        private const val USE_GPU_FOR_EMBEDDINGS = false
         private const val CHUNK_SEPARATOR = "<chunk_splitter>"
-
-        private const val GEMMA_MODEL_PATH = "/data/local/tmp/gemma-3n-e2b-it-int4.task"
         private const val TOKENIZER_MODEL_PATH = "/data/local/tmp/sentencepiece.model"
         private const val GECKO_MODEL_PATH = "/data/local/tmp/gecko_1024_quant.tflite"
+        private const val USE_GPU_FOR_EMBEDDINGS = false
 
-        // Prompt template for RetrievalAndInferenceChain
-        private const val PROMPT_TEMPLATE: String =
-            "You are an assistant for question-answering tasks. Here are the things I want to remember: {0} Use the things I want to remember, answer the following question the user has: {1}"
+        const val PROMPT_TEMPLATE: String =
+            "Kamu adalah asisten yang menjawab pertanyaan. Ingat informasi ini: {0}. Hanya gunakan informasi yang tertera untuk menjawab pertanyaan ini dalam 1 hingga 3 kalimat: {1}"
     }
 }

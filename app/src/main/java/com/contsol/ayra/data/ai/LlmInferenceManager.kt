@@ -1,7 +1,9 @@
 package com.contsol.ayra.data.ai
 
+import android.app.Application
 import android.content.Context
 import android.util.Log
+import com.contsol.ayra.data.source.rag.RagPipeline
 import com.google.mediapipe.tasks.genai.llminference.LlmInference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,6 +22,7 @@ object LlmInferenceManager {
     private var isInitializing = false
     private val initializationMutex = Mutex() // To prevent concurrent initialization attempts
     private var initializationListeners = mutableListOf<() -> Unit>() // To queue listeners if init is in progress
+    private var ragPipeline: RagPipeline? = null
 
     // --- Configuration ---
     // Option 1: Download model (uncomment the URL and choose this option in initializeIfNeeded)
@@ -28,7 +31,6 @@ object LlmInferenceManager {
     // Option 2: Model from assets (ensure this matches the name in your assets folder)
     private const val MODEL_ASSET_NAME = "gemma-3n-E2B-it-int4.task"
     private const val MODEL_FILE_NAME = "gemma-3n-E2B-it-int4.task" // Name for the file in internal storage
-
     /**
      * Initializes the LlmInference engine if it hasn't been already.
      * This method handles model acquisition (download or copy from assets) and setup.
@@ -72,12 +74,18 @@ object LlmInferenceManager {
                         LlmInference.createFromOptions(context.applicationContext, taskOptions)
                     }
                     Log.i("LlmInferenceManager", "LlmInference initialized successfully.")
+                    ragPipeline = RagPipeline(context.applicationContext as Application, modelFile.absolutePath)
+                    ragPipeline?.memorizeChunks(context, "knowledge/knowledge-base.txt")
+                    if (ragPipeline != null) {
+                        Log.i("LlmInferenceManager", "RAG Pipeline initialized successfully.")
+                    }
                     initializationMutex.withLock {
                         isInitializing = false
                         onInitialized()
                         initializationListeners.forEach { it() }
                         initializationListeners.clear()
                     }
+
                 } catch (e: Exception) {
                     Log.e("LlmInferenceManager", "Failed to initialize LlmInference: ${e.message}", e)
                     initializationMutex.withLock { isInitializing = false }
@@ -196,6 +204,26 @@ object LlmInferenceManager {
         }
     }
 
+    suspend fun runWithRag(prompt: String): String? = withContext(Dispatchers.IO) {
+        if (!isInitialized()) {
+            Log.e("LlmInferenceManager", "LLM not initialized. Call initializeIfNeeded() first.")
+            return@withContext "Error: AYRA is not ready yet. Please wait for initialization."
+        }
+        if (ragPipeline == null) { // <<< ADD THIS CHECK
+            Log.e("LlmInferenceManager", "ERROR: ragPipeline is NULL before calling generateResponse!")
+            return@withContext "Error: RAG pipeline not ready."
+        }
+        try {
+            Log.d("LlmInferenceManager", "Generating response using RAG for prompt: \"$prompt\"")
+            val response = ragPipeline?.generateResponse(prompt, null) // Safe call still good
+            Log.d("LlmInferenceManager", "LLM + RAG Response: \"$response\"")
+            response
+        } catch (e: Exception) {
+            Log.e("LlmInferenceManager", "Error generating LLM response: ${e.message}", e)
+            "Error: I encountered a problem trying to respond."
+        }
+    }
+
     /**
      * Closes the LlmInference engine and releases resources.
      * Should be called when the LLM is no longer needed (e.g., in Application.onTerminate).
@@ -208,7 +236,9 @@ object LlmInferenceManager {
             Log.e("LlmInferenceManager", "Error closing LlmInference: ${e.message}", e)
         } finally {
             llmInference = null
+            ragPipeline = null
             Log.d("LlmInferenceManager", "LlmInference resources released.")
+            Log.d("LlmInferenceManager", "RAG Pipeline resources released.")
         }
     }
 }

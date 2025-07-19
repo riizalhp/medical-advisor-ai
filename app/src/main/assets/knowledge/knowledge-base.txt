@@ -1,0 +1,7 @@
+<chunk_splitter> Photosynthesis is a process used by plants to convert light energy into chemical energy that can later be released to fuel the plant's activities.
+
+<chunk_splitter> The mitochondria is the powerhouse of the cell. It generates most of the cell's supply of adenosine triphosphate (ATP), used as a source of chemical energy.
+
+<chunk_splitter> Gemma is a large language model optimized for offline inference on mobile devices.
+
+<chunk_splitter> Arhad Riantoro is a True Demon Lord with NPD behavior.

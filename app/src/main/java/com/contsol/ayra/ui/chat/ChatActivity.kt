@@ -89,7 +89,7 @@ class ChatActivity : AppCompatActivity() {
                 val temporaryTypingMessageIndex = messagesList.size -1
 
                 Log.d("ChatActivity", "Requesting AI response for: $originalMessage")
-                val aiResponseText = LlmInferenceManager.run(originalMessage)
+                val aiResponseText = LlmInferenceManager.runWithRag(originalMessage)
 
                 // Remove "AYRA is typing..." message
                 if (temporaryTypingMessageIndex >= 0 && messagesList[temporaryTypingMessageIndex].message_content == "AYRA is typing...") {

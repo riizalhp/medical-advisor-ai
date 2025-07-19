@@ -17,7 +17,7 @@ class RagPipelineUnitTest {
     @Test
     fun testMemorizeChunks() {
         // Contoh file: assets/knowledge/test_knowledge.txt
-        pipeline.memorizeChunks(context, "knowledge/knowledge_test.txt")
+        pipeline.memorizeChunks(context, "knowledge/knowledge-base.txt")
         // Kalau tidak error → pass
         assertTrue(true)
     }
@@ -27,7 +27,7 @@ class RagPipelineUnitTest {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val pipeline = RagPipeline(context as android.app.Application)
 
-        pipeline.memorizeChunks(context, "knowledge/knowledge_test.txt")
+        pipeline.memorizeChunks(context, "knowledge/knowledge-base.txt")
 
         val question = "What is the powerhouse of the cell?"
         val answer = pipeline.generateResponse(question)
