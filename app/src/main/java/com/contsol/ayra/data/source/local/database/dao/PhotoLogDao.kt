@@ -1,26 +1,47 @@
 package com.contsol.ayra.data.source.local.database.dao
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
-import androidx.room.Update
-import com.contsol.ayra.data.source.local.database.entity.PhotoLogEntity
+import android.content.ContentValues
+import android.content.Context
+import androidx.core.database.getStringOrNull
+import com.contsol.ayra.data.source.local.database.AppSQLiteHelper
+import com.contsol.ayra.data.source.local.database.model.PhotoLog
 
-@Dao
-interface PhotoLogDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(photoLog: PhotoLogEntity): Long
+class PhotoLogDao(context: Context) {
 
-    @Query("SELECT * FROM PhotoLogEntity")
-    suspend fun getPhotoLogs(): PhotoLogEntity?
+    private val dbHelper = AppSQLiteHelper(context)
 
-    @Query("SELECT * FROM PhotoLogEntity WHERE id = :id")
-    suspend fun getPhotoLogById(id: Long): PhotoLogEntity?
+    fun insert(photo: PhotoLog): Long {
+        val db = dbHelper.writableDatabase
+        val values = ContentValues().apply {
+            put("file_path", photo.filePath)
+            put("timestamp", photo.timestamp)
+            put("symptom_detected", photo.symptomDetected)
+        }
+        return db.insert("PhotoLog", null, values)
+    }
 
-    @Update
-    suspend fun updatePhotoLog(photoLog: PhotoLogEntity)
+    fun getAll(): List<PhotoLog> {
+        val db = dbHelper.readableDatabase
+        val cursor = db.rawQuery("SELECT * FROM PhotoLog ORDER BY timestamp ASC", null)
+        val photoLogs = mutableListOf<PhotoLog>()
 
-    @Query("DELETE FROM PhotoLogEntity WHERE id = :id")
-    suspend fun deletePhotoLog(id: Long)
+        cursor.use {
+            while (it.moveToNext()) {
+                val photo = PhotoLog(
+                    id = it.getLong(it.getColumnIndexOrThrow("id")),
+                    filePath = it.getString(it.getColumnIndexOrThrow("file_path")),
+                    timestamp = it.getLong(it.getColumnIndexOrThrow("timestamp")),
+                    symptomDetected = it.getStringOrNull(it.getColumnIndexOrThrow("symptom_detected")),
+                )
+                photoLogs.add(photo)
+            }
+        }
+
+        return photoLogs
+    }
+
+    fun deleteAll() {
+        val db = dbHelper.writableDatabase
+        db.delete("PhotoLog", null, null)
+    }
 }

@@ -31,6 +31,9 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+    buildFeatures{
+        viewBinding = true
+    }
 }
 
 kotlin {
@@ -58,9 +61,6 @@ dependencies {
     implementation(libs.fragment.ktx)
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
-    implementation(libs.room.ktx)
-    implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
     implementation(libs.tasks.genai)
     ksp(libs.room.compiler)
 
@@ -69,4 +69,5 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:<latest_version>")
     testImplementation("androidx.test:core-ktx:1.5.0")
+    implementation(libs.koin.android)
 }

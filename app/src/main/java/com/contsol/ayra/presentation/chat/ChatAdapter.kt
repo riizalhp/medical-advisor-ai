@@ -1,4 +1,4 @@
-package com.contsol.ayra.ui.chat // Use your actual package name
+package com.contsol.ayra.presentation.chat // Use your actual package name
 
 import android.view.LayoutInflater
 import android.view.View
@@ -11,10 +11,10 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.contsol.ayra.R
-import com.contsol.ayra.data.source.local.database.entity.ChatLogEntity
+import com.contsol.ayra.data.source.local.database.model.ChatLog
 import com.contsol.ayra.utils.convertTimestampToDate
 
-class ChatAdapter : ListAdapter<ChatLogEntity, RecyclerView.ViewHolder>(ChatDiffCallback()) {
+class ChatAdapter : ListAdapter<ChatLog, RecyclerView.ViewHolder>(ChatDiffCallback()) {
 
     companion object {
         private const val VIEW_TYPE_USER = 1
@@ -24,9 +24,9 @@ class ChatAdapter : ListAdapter<ChatLogEntity, RecyclerView.ViewHolder>(ChatDiff
 
     override fun getItemViewType(position: Int): Int {
         val message = getItem(position)
-        return when (message.is_user_message) {
+        return when (message.isUserMessage) {
             true -> {
-                if (message.image_url != null) VIEW_TYPE_USER_WITH_IMAGE else VIEW_TYPE_USER
+                if (message.imageUrl != null) VIEW_TYPE_USER_WITH_IMAGE else VIEW_TYPE_USER
             }
             false -> {
                 // if (message.imageUrl != null) VIEW_TYPE_AI_WITH_IMAGE else VIEW_TYPE_AI // If AI can also send images
@@ -70,8 +70,8 @@ class ChatAdapter : ListAdapter<ChatLogEntity, RecyclerView.ViewHolder>(ChatDiff
     inner class UserMessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val messageText: TextView = itemView.findViewById(R.id.textViewMessage)
         private val messageTimestamp: TextView = itemView.findViewById(R.id.textViewTimestamp)
-        fun bind(chatMessage: ChatLogEntity) {
-            messageText.text = chatMessage.message_content
+        fun bind(chatMessage: ChatLog) {
+            messageText.text = chatMessage.messageContent
             messageTimestamp.text = convertTimestampToDate(chatMessage.timestamp)
         }
     }
@@ -81,10 +81,10 @@ class ChatAdapter : ListAdapter<ChatLogEntity, RecyclerView.ViewHolder>(ChatDiff
         private val messageTimestamp: TextView = itemView.findViewById(R.id.textViewTimestamp)
         private val messageImage: ImageView = itemView.findViewById(R.id.imageViewSent) // Ensure this ID matches your item_chat_user_with_image.xml
 
-        fun bind(chatMessage: ChatLogEntity) {
+        fun bind(chatMessage: ChatLog) {
             // Bind text message content
-            if (chatMessage.message_content.isNotEmpty()) {
-                messageText.text = chatMessage.message_content
+            if (chatMessage.messageContent.isNotEmpty()) {
+                messageText.text = chatMessage.messageContent
                 messageText.visibility = View.VISIBLE
             } else {
                 // Hide the TextView if there's no text message,
@@ -96,9 +96,9 @@ class ChatAdapter : ListAdapter<ChatLogEntity, RecyclerView.ViewHolder>(ChatDiff
             messageTimestamp.text = convertTimestampToDate(chatMessage.timestamp)
 
             // Bind image using Coil
-            if (chatMessage.image_url != null) {
+            if (chatMessage.imageUrl != null) {
                 messageImage.visibility = View.VISIBLE // Make ImageView visible
-                messageImage.load(chatMessage.image_url) {
+                messageImage.load(chatMessage.imageUrl) {
                     // placeholder(R.drawable.ic_placeholder_image) // Optional: a drawable to show while loading
                     // error(R.drawable.ic_error_image) // Optional: a drawable to show if loading fails
                     // crossfade(true) // Optional: for a fade-in effect
@@ -115,18 +115,18 @@ class ChatAdapter : ListAdapter<ChatLogEntity, RecyclerView.ViewHolder>(ChatDiff
     inner class AiMessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val messageText: TextView = itemView.findViewById(R.id.textViewMessage)
         private val messageTimestamp: TextView = itemView.findViewById(R.id.textViewTimestamp)
-        fun bind(chatMessage: ChatLogEntity) {
-            messageText.text = chatMessage.message_content
+        fun bind(chatMessage: ChatLog) {
+            messageText.text = chatMessage.messageContent
             messageTimestamp.text = convertTimestampToDate(chatMessage.timestamp)
         }
     }
 
-    class ChatDiffCallback : DiffUtil.ItemCallback<ChatLogEntity>() {
-        override fun areItemsTheSame(oldItem: ChatLogEntity, newItem: ChatLogEntity): Boolean {
+    class ChatDiffCallback : DiffUtil.ItemCallback<ChatLog>() {
+        override fun areItemsTheSame(oldItem: ChatLog, newItem: ChatLog): Boolean {
             return oldItem.id == newItem.id
         }
 
-        override fun areContentsTheSame(oldItem: ChatLogEntity, newItem: ChatLogEntity): Boolean {
+        override fun areContentsTheSame(oldItem: ChatLog, newItem: ChatLog): Boolean {
             return oldItem == newItem
         }
     }

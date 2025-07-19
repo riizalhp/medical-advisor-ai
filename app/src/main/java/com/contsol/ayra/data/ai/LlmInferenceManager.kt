@@ -62,6 +62,7 @@ object LlmInferenceManager {
             val modelFile = acquireModelFromAssets(context.applicationContext)    // Option 2: Copy from Assets
 
             if (modelFile != null && modelFile.exists()) {
+                Log.d("LlmInferenceManager", "Model Path: ${modelFile.absolutePath}")
                 try {
                     llmInference = withContext(Dispatchers.IO) { // LlmInference.createFromOptions can be blocking
                         val taskOptions = LlmInference.LlmInferenceOptions.builder()
@@ -159,6 +160,26 @@ object LlmInferenceManager {
             Log.d("LlmInferenceManager", "Model already exists in internal storage (from assets): ${modelFile.absolutePath}")
             return modelFile
         }
+        // ACTIVATE THIS COMMENT WHEN YOUR INTERNAL STORAGE MODEL CORRUPT
+        /* if (modelFile.exists()) {
+            Log.d("LlmInferenceManager", "Existing model found at ${modelFile.absolutePath}. Deleting it to force re-copy from assets.")
+            val deleted = withContext(Dispatchers.IO) { // Perform file deletion on IO dispatcher
+                try {
+                    modelFile.delete()
+                } catch (e: Exception) {
+                    Log.e("LlmInferenceManager", "Failed to delete existing model: ${e.message}", e)
+                    false // Return false if deletion fails
+                }
+            }
+            if (!deleted && modelFile.exists()) { // Double check if deletion failed and file still exists
+                Log.w("LlmInferenceManager", "Could not delete the existing model. Re-copy might be problematic or use the old file.")
+                // Depending on your requirements, you might want to return null here
+                // or proceed, knowing it might use an older/undeleted file.
+                // For a guaranteed re-copy, failing here would be safer if deletion is critical.
+            } else if (deleted) {
+                Log.d("LlmInferenceManager", "Successfully deleted existing model.")
+            }
+        } */
 
         Log.d("LlmInferenceManager", "Copying model from assets to ${modelFile.absolutePath}...")
         return try {
