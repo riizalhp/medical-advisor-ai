@@ -25,9 +25,10 @@
                 android:id="@+id/hamburger_menu"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_menu"
+                android:src="@drawable/ic_menu_new"
                 android:layout_gravity="start|center_vertical"
-                android:contentDescription="@string/ayra_chat_menu" />
+                android:contentDescription="@string/ayra_chat_menu"
+                app:tint="@color/main_50" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -153,6 +154,7 @@
                 android:background="@android:color/transparent"
                 android:textColor="@android:color/black"
                 android:textSize="13sp"/>
+
             <ImageButton
                 android:id="@+id/buttonSend"
                 android:layout_width="48dp"
@@ -162,7 +164,45 @@
                 android:layout_gravity="end|center_vertical"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 app:tint="@color/secondary_700"
-                android:padding="8dp"/>
+                android:padding="8dp"
+                android:visibility="gone"
+                tools:visibility="visible"/>
+
         </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/buttonMic"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_mic"
+            android:contentDescription="@string/send"
+            android:layout_gravity="end|center_vertical"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="@android:color/white"
+            android:padding="8dp"/>
+
     </LinearLayout>
+
+    <androidx.camera.view.PreviewView
+        android:id="@+id/cameraPreviewView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:visibility="gone" />
+
+    <ImageButton
+        android:id="@+id/buttonCaptureImage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/button_capture"
+        android:src="@drawable/ic_circle"
+        app:layout_constraintBottom_toBottomOf="@id/cameraPreviewView"
+        app:layout_constraintStart_toStartOf="@id/cameraPreviewView"
+        app:layout_constraintEnd_toEndOf="@id/cameraPreviewView"
+        android:layout_marginBottom="32dp"
+        android:visibility="gone" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

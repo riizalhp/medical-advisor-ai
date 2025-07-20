@@ -34,4 +34,5 @@
     <string name="ayra_chat_menu">Ayra Chat Menu</string>
     <string name="attachment_preview">Attachment Preview</string>
     <string name="remove_attachment">Remove attachment</string>
+    <string name="button_capture">Button Capture</string>
 </resources>

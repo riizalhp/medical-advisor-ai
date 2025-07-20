@@ -80,6 +80,7 @@ object LlmInferenceManager {
 
     private suspend fun acquireModelFromAssets(context: Context): File? {
         val modelFile = File(context.filesDir, MODEL_FILE_NAME)
+        // Activate lines below to delete existing model if it exists and re-copy from assets (use when existing model corrupted)
         if (modelFile.exists()) {
             Log.d("LlmInferenceManager", "Existing model found at ${modelFile.absolutePath}. Deleting it to force re-copy from assets.")
             val deleted = withContext(Dispatchers.IO) {

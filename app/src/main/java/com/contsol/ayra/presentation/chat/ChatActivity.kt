@@ -1,7 +1,15 @@
 package com.contsol.ayra.presentation.chat
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.widget.EditText
@@ -11,7 +19,15 @@ import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope // Import for lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -22,7 +38,12 @@ import com.contsol.ayra.data.source.local.database.model.ChatLog
 import kotlinx.coroutines.launch // Import launch
 import java.io.File
 import java.io.FileOutputStream
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import kotlin.collections.toList
+import androidx.core.view.isGone
 
 class ChatActivity : AppCompatActivity() {
 
@@ -31,52 +52,51 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var buttonSend: ImageButton
     private lateinit var buttonAttach: ImageButton
     private lateinit var buttonCamera: ImageButton
+    private lateinit var buttonMic: ImageButton
     private lateinit var chatAdapter: ChatAdapter
     private val messagesList = mutableListOf<ChatLog>()
 
     // For displaying the selected image thumbnail (optional, but good UX)
     private lateinit var imageViewAttachmentPreview: ImageView
     private lateinit var buttonRemoveAttachment: ImageButton
+    private lateinit var previewContainer: ConstraintLayout
 
-    private var selectedImageUri: Uri? = null
-    private var selectedImageFilePath: String? = null // To store the path of the copied image
+    // For CameraX
+    private lateinit var cameraPreviewView: PreviewView
+    private lateinit var buttonCaptureImage: ImageButton // Button to take picture in CameraX view
+    private var imageCapture: ImageCapture? = null
+    private lateinit var cameraExecutor: ExecutorService
+    private var cameraProvider: ProcessCameraProvider? = null
+
+    private var currentAttachmentPath: String? = null
+
+    // For Speech Recognition
+    private var speechRecognizer: SpeechRecognizer? = null
+    private var isListeningForSpeech = false
+    private val recordAudioPermissionCode = 101
+    private val cameraPermissionCode = 102
 
     // ActivityResultLauncher for the Photo Picker
     private val pickMediaLauncher =
         registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri: Uri? ->
             if (uri != null) {
                 Log.d("PhotoPicker", "Selected URI: $uri")
-                selectedImageUri = uri
-                // Copy the selected image to app's internal storage to get a stable path
-                // LlmInferenceManager.runWithImage expects a file path.
-                copyUriToInternalStorage(uri)?.let { filePath ->
-                    selectedImageFilePath = filePath
+                currentAttachmentPath = null // Clear previous
+                copyUriToAppStorage(uri, "picked_image_${System.currentTimeMillis()}.jpg")?.let { filePath ->
+                    currentAttachmentPath = filePath
                     imageViewAttachmentPreview.setImageURI(uri) // Show preview
-                    imageViewAttachmentPreview.isVisible = true
-                    buttonRemoveAttachment.isVisible = true
-
-                    val previewContainer = findViewById<ConstraintLayout>(R.id.attachmentPreviewContainer)
                     previewContainer.isVisible = true
-                    Log.d("ChatActivity", "Preview Container Visible: ${previewContainer.isVisible}, Height: ${previewContainer.height}")
-
+                    buttonRemoveAttachment.isVisible = true
+                    updateSendButtonVisibility()
                     Toast.makeText(this, "Image selected. Add a prompt and send.", Toast.LENGTH_LONG).show()
                 } ?: run {
-                    Toast.makeText(this, "Failed to prepare image.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Failed to prepare image from picker.", Toast.LENGTH_SHORT).show()
                     clearAttachment()
-
-                    val previewContainer = findViewById<ConstraintLayout>(R.id.attachmentPreviewContainer)
-                    previewContainer.isVisible = false
-                    Log.d("ChatActivity", "Preview Container Cleared. Visible: ${previewContainer.isVisible}")
                 }
             } else {
                 Log.d("PhotoPicker", "No media selected")
-                // Optionally clear attachment if user cancels picker after selecting one before
-                // if (selectedImageUri != null) { // Only clear if there was a previous selection
-                //     clearAttachment()
-                // }
             }
         }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,57 +107,368 @@ class ChatActivity : AppCompatActivity() {
         buttonSend = findViewById(R.id.buttonSend)
         buttonAttach = findViewById(R.id.buttonAttach)
         buttonCamera = findViewById(R.id.buttonCamera)
+        buttonMic = findViewById(R.id.buttonMic)
 
         // Initialize preview views (assuming you add these to your R.layout.activity_chat)
+        previewContainer = findViewById(R.id.attachmentPreviewContainer)
         imageViewAttachmentPreview = findViewById(R.id.imageViewAttachmentPreview)
         buttonRemoveAttachment = findViewById(R.id.buttonRemoveAttachment)
 
+        // CameraX Views
+        cameraPreviewView = findViewById(R.id.cameraPreviewView)
+        buttonCaptureImage = findViewById(R.id.buttonCaptureImage)
 
         setupRecyclerView()
         loadSampleMessages()
+        setupTextChangeListener()
+        updateSendButtonVisibility()
 
         buttonSend.setOnClickListener {
-            val messageText = editTextMessage.text.toString().trim()
-            if (messageText.isNotEmpty() || selectedImageFilePath != null) { // Allow sending if text OR image
-                if (selectedImageFilePath != null && messageText.isNotEmpty()) {
-                    // Send message with image
-                    sendImageMessage(messageText, selectedImageFilePath!!) // Pass the path
-                    editTextMessage.text.clear()
-                    generateAiResponseWithImage(messageText, selectedImageFilePath!!)
-                    clearAttachment()
-                } else if (messageText.isNotEmpty()) {
-                    // Send text-only message
-                    sendMessage(messageText)
-                    editTextMessage.text.clear()
-                    generateAiResponse(messageText)
-                } else if (selectedImageFilePath != null) {
-                    // Send image-only message (or prompt user for text)
-                    Toast.makeText(this, "Please add a text prompt for the image.", Toast.LENGTH_SHORT).show()
-                    // Alternatively, you could send a default prompt or allow image-only messages
-                    // if your AI and UI are designed for it.
-                    // For now, let's assume text is needed with an image.
-                }
-            } else {
-                Toast.makeText(this, "Please type a message or attach an image.", Toast.LENGTH_SHORT).show()
-            }
+            handleSendButtonClick()
         }
 
         buttonAttach.setOnClickListener {
             // Launch the photo picker and allow the user to choose only images.
+            hideCameraPreview()
             pickMediaLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
 
         buttonCamera.setOnClickListener {
-            Toast.makeText(this, "Button camera clicked", Toast.LENGTH_SHORT).show()
-            // TODO: Implement camera capture
+            handleCameraButtonClick()
+        }
+
+        buttonMic.setOnClickListener {
+            hideCameraPreview()
+            handleMicButtonClick()
         }
 
         buttonRemoveAttachment.setOnClickListener {
             clearAttachment()
         }
 
+        buttonCaptureImage.setOnClickListener {
+            takePhoto()
+        }
+
         if (!LlmInferenceManager.isInitialized()) {
             Toast.makeText(this, "AI is initializing, please wait...", Toast.LENGTH_SHORT).show()
+        }
+
+        // Initialize CameraX Executor
+        cameraExecutor = Executors.newSingleThreadExecutor()
+    }
+
+    private fun handleSendButtonClick() {
+        val messageText = editTextMessage.text.toString().trim()
+        val imagePathForLlm: String? = currentAttachmentPath
+
+        if (messageText.isNotEmpty() || imagePathForLlm != null) {
+            if (imagePathForLlm != null && messageText.isNotEmpty()) {
+                sendImageMessage(messageText, imagePathForLlm)
+                generateAiResponseWithImage(messageText, imagePathForLlm)
+                editTextMessage.text.clear()
+                clearAttachment()
+            } else if (messageText.isNotEmpty()) {
+                sendMessage(messageText)
+                generateAiResponse(messageText)
+                editTextMessage.text.clear()
+            } else if (imagePathForLlm != null) {
+                Toast.makeText(this, "Please add a text prompt for the image.", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(this, "Please type a message or attach an image.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun handleCameraButtonClick() {
+        if (allPermissionsGranted()) {
+            showCameraPreview()
+        } else {
+            ActivityCompat.requestPermissions(
+                this, arrayOf(Manifest.permission.CAMERA), cameraPermissionCode
+            )
+        }
+    }
+
+    private fun allPermissionsGranted() = ContextCompat.checkSelfPermission(
+        this, Manifest.permission.CAMERA
+    ) == PackageManager.PERMISSION_GRANTED
+
+    private fun showCameraPreview() {
+        // Hide chat input, show camera preview and capture button
+        editTextMessage.visibility = View.GONE
+        buttonSend.visibility = View.GONE
+        buttonAttach.visibility = View.GONE
+        buttonMic.visibility = View.GONE
+        previewContainer.visibility = View.GONE // Hide any existing attachment
+
+        cameraPreviewView.visibility = View.VISIBLE
+        buttonCaptureImage.visibility = View.VISIBLE
+        startCamera()
+    }
+
+    private fun hideCameraPreview() {
+        // Show chat input, hide camera preview
+        editTextMessage.visibility = View.VISIBLE
+        updateSendButtonVisibility() // This will manage send/mic button
+        buttonAttach.visibility = View.VISIBLE
+
+        cameraPreviewView.visibility = View.GONE
+        buttonCaptureImage.visibility = View.GONE
+        // Stop the camera
+        cameraProvider?.unbindAll()
+    }
+
+    private fun startCamera() {
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+
+        cameraProviderFuture.addListener({
+            // Used to bind the lifecycle of cameras to the lifecycle owner
+            cameraProvider = cameraProviderFuture.get()
+
+            // Preview
+            val preview = Preview.Builder()
+                .build()
+                .also {
+                    it.setSurfaceProvider(cameraPreviewView.surfaceProvider)
+                }
+
+            imageCapture = ImageCapture.Builder()
+                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY) // Or .CAPTURE_MODE_MAXIMIZE_QUALITY
+                .build()
+
+            // Select back camera as a default
+            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+            try {
+                // Unbind use cases before rebinding
+                cameraProvider?.unbindAll()
+
+                // Bind use cases to camera
+                cameraProvider?.bindToLifecycle(
+                    this, cameraSelector, preview, imageCapture
+                )
+                Log.d("CameraX", "Camera started successfully")
+
+            } catch (exc: Exception) {
+                Log.e("CameraX", "Use case binding failed", exc)
+                Toast.makeText(this, "Failed to start camera.", Toast.LENGTH_SHORT).show()
+                hideCameraPreview()
+            }
+
+        }, ContextCompat.getMainExecutor(this))
+    }
+
+    private fun takePhoto() {
+        // Get a stable reference of the modifiable image capture use case
+        val imageCapture = imageCapture ?: return
+
+        // Create time-stamped name and MediaStore entry.
+        val name = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US)
+            .format(System.currentTimeMillis())
+
+        // Create output options object which contains file + metadata
+        // For saving to app's cache directory instead of MediaStore:
+        val outputDirectory = File(cacheDir, "captures")
+        if (!outputDirectory.exists()) {
+            outputDirectory.mkdirs()
+        }
+        val photoFile = File(outputDirectory, "AYRA_IMG_$name.jpg")
+
+        val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+
+
+        // Set up image capture listener, which is triggered after photo has been taken
+        imageCapture.takePicture(
+            outputOptions,
+            ContextCompat.getMainExecutor(this),
+            object : ImageCapture.OnImageSavedCallback {
+                override fun onError(exc: ImageCaptureException) {
+                    Log.e("CameraX", "Photo capture failed: ${exc.message}", exc)
+                    Toast.makeText(baseContext, "Photo capture failed: ${exc.localizedMessage}", Toast.LENGTH_SHORT).show()
+                    hideCameraPreview() // Or allow retry
+                }
+
+                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                    val savedUri = output.savedUri ?: Uri.fromFile(photoFile) // Fallback if savedUri is null (though with File, it should be)
+                    Log.d("CameraX", "Photo capture succeeded: $savedUri")
+                    Log.d("CameraX", "Photo saved to path: ${photoFile.absolutePath}")
+
+                    currentAttachmentPath = photoFile.absolutePath // Store path for LLM
+
+                    imageViewAttachmentPreview.setImageURI(savedUri) // Show preview in your existing view
+                    previewContainer.isVisible = true
+                    buttonRemoveAttachment.isVisible = true
+                    updateSendButtonVisibility()
+                    Toast.makeText(baseContext, "Image captured!", Toast.LENGTH_SHORT).show()
+                    hideCameraPreview() // Go back to chat input
+                }
+            }
+        )
+    }
+
+    private fun handleMicButtonClick() {
+        if (!isListeningForSpeech) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                startSpeechToText()
+            } else {
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), recordAudioPermissionCode)
+            }
+        } else {
+            stopSpeechToText()
+        }
+    }
+
+    private fun initializeSpeechRecognizer() {
+        if (!SpeechRecognizer.isRecognitionAvailable(this)) {
+            Toast.makeText(this, "Speech recognition is not available on this device.", Toast.LENGTH_LONG).show()
+            return
+        }
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this).apply {
+            setRecognitionListener(object : RecognitionListener {
+                override fun onReadyForSpeech(params: Bundle?) {
+                    Log.d("SpeechRecognizer", "Ready for speech")
+                    // You could change mic icon here to indicate listening
+                    buttonMic.setImageResource(R.drawable.stop_circle_24px) // Example: use a different icon
+                    isListeningForSpeech = true
+                    Toast.makeText(this@ChatActivity, "Listening...", Toast.LENGTH_SHORT).show()
+                }
+
+                override fun onBeginningOfSpeech() {
+                    Log.d("SpeechRecognizer", "Beginning of speech")
+                }
+
+                override fun onRmsChanged(rmsdB: Float) {} // Voice level changed
+
+                override fun onBufferReceived(buffer: ByteArray?) {}
+
+                override fun onEndOfSpeech() {
+                    Log.d("SpeechRecognizer", "End of speech")
+                    isListeningForSpeech = false
+                    buttonMic.setImageResource(R.drawable.ic_mic) // Reset mic icon
+                }
+
+                override fun onError(error: Int) {
+                    Log.e("SpeechRecognizer", "Error: $error")
+                    isListeningForSpeech = false
+                    buttonMic.setImageResource(R.drawable.ic_mic) // Reset mic icon
+                    val errorMessage = when (error) {
+                        SpeechRecognizer.ERROR_AUDIO -> "Audio recording error"
+                        SpeechRecognizer.ERROR_CLIENT -> "Client side error"
+                        SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Insufficient permissions"
+                        SpeechRecognizer.ERROR_NETWORK -> "Network error"
+                        SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Network timeout"
+                        SpeechRecognizer.ERROR_NO_MATCH -> "No speech match"
+                        SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "Recognizer busy"
+                        SpeechRecognizer.ERROR_SERVER -> "Error from server"
+                        SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "No speech input"
+                        else -> "Unknown speech recognition error"
+                    }
+                    Toast.makeText(this@ChatActivity, errorMessage, Toast.LENGTH_SHORT).show()
+                }
+
+                override fun onResults(results: Bundle?) {
+                    val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                    if (!matches.isNullOrEmpty()) {
+                        val recognizedText = matches[0] // Get the most likely result
+                        Log.d("SpeechRecognizer", "Recognized text: $recognizedText")
+                        editTextMessage.setText(recognizedText) // Set text to EditText
+                        editTextMessage.setSelection(recognizedText.length) // Move cursor to end
+
+                        // Optionally, send the message directly after recognition
+                        // handleSendMessage()
+                        // Or wait for user to press send
+                    }
+                    isListeningForSpeech = false
+                    buttonMic.setImageResource(R.drawable.ic_mic) // Reset mic icon
+                }
+
+                override fun onPartialResults(partialResults: Bundle?) {
+                    val matches = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                    if (!matches.isNullOrEmpty()) {
+                        editTextMessage.setText(matches[0]) // Show partial results in EditText
+                        editTextMessage.setSelection(matches[0].length)
+                    }
+                }
+
+                override fun onEvent(eventType: Int, params: Bundle?) {}
+            })
+        }
+    }
+
+    private fun startSpeechToText() {
+        if (speechRecognizer == null) {
+            initializeSpeechRecognizer()
+        }
+        if (speechRecognizer != null && SpeechRecognizer.isRecognitionAvailable(this)) {
+            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault()) // Or specify a language
+                putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true) // For live updates in EditText
+                putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak now...") // Optional prompt
+            }
+            speechRecognizer?.startListening(intent)
+        } else {
+            Toast.makeText(this, "Speech recognition not initialized or not available.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun stopSpeechToText() {
+        speechRecognizer?.stopListening()
+        isListeningForSpeech = false
+        buttonMic.setImageResource(R.drawable.ic_mic) // Reset mic icon
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            recordAudioPermissionCode -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    startSpeechToText()
+                } else {
+                    Toast.makeText(this, "Audio recording permission denied.", Toast.LENGTH_SHORT).show()
+                }
+            }
+            cameraPermissionCode -> {
+                if (allPermissionsGranted()) {
+                    showCameraPreview()
+                } else {
+                    Toast.makeText(this, "Camera permission denied.", Toast.LENGTH_SHORT).show()
+                    hideCameraPreview() // Ensure camera view is hidden if permission denied
+                }
+            }
+        }
+    }
+
+    private fun setupTextChangeListener() {
+        editTextMessage.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                // Not needed for this use case
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                // Called when text is changing
+                updateSendButtonVisibility()
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+                // Not needed for this use case
+            }
+        })
+    }
+
+    private fun updateSendButtonVisibility() {
+        val messageText = editTextMessage.text.toString().trim()
+        val hasAttachment = currentAttachmentPath != null
+        // Ensure camera UI is not active when updating these
+        if (cameraPreviewView.isGone) {
+            if (messageText.isNotEmpty() || hasAttachment) {
+                buttonSend.isVisible = true
+                buttonMic.isVisible = false
+            } else {
+                buttonSend.isVisible = false
+                buttonMic.isVisible = true
+            }
         }
     }
 
@@ -163,6 +494,7 @@ class ChatActivity : AppCompatActivity() {
             isUserMessage = true,
             timestamp = System.currentTimeMillis()
         )
+        Log.d("ChatActivity", "Sending image message with path: ${message.imageUrl}")
         addNewMessage(message)
         // You'll need to update your ChatAdapter to display this image
     }
@@ -177,7 +509,7 @@ class ChatActivity : AppCompatActivity() {
         lifecycleScope.launch {
             showTypingIndicator()
             try {
-                val aiResponseText = LlmInferenceManager.run(originalMessage) ?: "Sorry, I couldn't process that."
+                val aiResponseText = LlmInferenceManager.run(originalMessage)
                 removeTypingIndicator()
                 addNewMessage(ChatLog(messageContent = aiResponseText, isUserMessage = false))
             } catch (e: Exception) {
@@ -249,29 +581,46 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun clearAttachment() {
-        selectedImageUri = null
-        selectedImageFilePath = null
-        imageViewAttachmentPreview.setImageURI(null) // Clear preview
-        imageViewAttachmentPreview.isVisible = false
+        currentAttachmentPath?.let { /* path ->
+            // Optionally delete the file if it's from CameraX and stored in cache
+            if (path.contains(cacheDir.absolutePath)) { // Basic check
+                File(path).delete()
+            } */
+        }
+        currentAttachmentPath = null
+
+        imageViewAttachmentPreview.setImageURI(null)
+        previewContainer.isVisible = false
         buttonRemoveAttachment.isVisible = false
+        updateSendButtonVisibility()
         Log.d("ChatActivity", "Attachment cleared.")
     }
 
-    private fun copyUriToInternalStorage(uri: Uri): String? {
+    private fun copyUriToAppStorage(uri: Uri, fileName: String): String? {
         return try {
             val inputStream = contentResolver.openInputStream(uri) ?: return null
-            val timestamp = System.currentTimeMillis()
-            val file = File(filesDir, "attachment_${timestamp}.jpg") // Create a unique file name
+            val outputDir = File(cacheDir, "attachments") // Store in a subdirectory
+            if (!outputDir.exists()) {
+                outputDir.mkdirs()
+            }
+            val file = File(outputDir, fileName)
             val outputStream = FileOutputStream(file)
             inputStream.use { input ->
                 outputStream.use { output ->
                     input.copyTo(output)
                 }
             }
+            Log.d("Storage", "Copied URI $uri to ${file.absolutePath}")
             file.absolutePath
         } catch (e: Exception) {
-            Log.e("ChatActivity", "Error copying URI to internal storage", e)
+            Log.e("Storage", "Error copying URI to app storage", e)
             null
         }
+    }
+
+    override fun onDestroy() {
+        speechRecognizer?.destroy()
+        cameraExecutor.shutdown()
+        super.onDestroy()
     }
 }
