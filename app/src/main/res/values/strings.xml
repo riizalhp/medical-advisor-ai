@@ -32,4 +32,7 @@
     <string name="this_is_image_description">This is image description</string>
     <string name="assistant">Assistant</string>
     <string name="ayra_chat_menu">Ayra Chat Menu</string>
+    <string name="attachment_preview">Attachment Preview</string>
+    <string name="remove_attachment">Remove attachment</string>
+    <string name="button_capture">Button Capture</string>
 </resources>
