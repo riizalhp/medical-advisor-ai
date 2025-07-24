@@ -27,6 +27,7 @@ import java.io.InputStreamReader
 import java.util.concurrent.Executors
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.guava.await
+import java.io.IOException
 import java.util.Optional
 import kotlin.jvm.optionals.getOrNull
 
@@ -82,31 +83,35 @@ class RagPipeline(application: Application, gemmaPath: String) {
     }
 
     fun memorizeChunks(context: Context, filename: String) {
-        val reader = BufferedReader(InputStreamReader(context.assets.open(filename)))
-        val sb = StringBuilder()
-        val texts = mutableListOf<String>()
+        Log.d("RagPipeline", "Starting chunk memorization from asset: $filename")
 
-        generateSequence { reader.readLine() }
-            .forEach { line ->
-                if (line.startsWith(CHUNK_SEPARATOR)) {
-                    if (sb.isNotEmpty()) {
-                        texts.add(sb.toString())
-                    }
-                    sb.clear()
-                    sb.append(line.removePrefix(CHUNK_SEPARATOR).trim())
-                } else {
-                    sb.append(" ")
-                    sb.append(line)
-                }
+        val CHUNK_SEPARATOR = "<chunk_splitter>"
+
+        try {
+            // Read the entire file content into a single string
+            val fileContent = context.assets.open(filename).bufferedReader().use { it.readText() }
+
+            // Define the regex pattern for the chunk separator.
+            // \s* matches any whitespace (including newlines) around the separator.
+            val regex = Regex("$CHUNK_SEPARATOR\\s*", RegexOption.IGNORE_CASE)
+
+            // Split the content using the regex, trim each chunk, and filter out empty ones
+            val texts = fileContent.split(regex)
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+
+            if (texts.isNotEmpty()) {
+                Log.d("RagPipeline", "Found ${texts.size} chunks. Memorizing...")
+                memorize(texts) // Assuming 'memorize' is a function that processes these text chunks
+                Log.d("RagPipeline", "Chunk memorization complete.")
+            } else {
+                Log.w("RagPipeline", "No valid chunks found in $filename after splitting.")
             }
 
-        if (sb.isNotEmpty()) {
-            texts.add(sb.toString())
-        }
-        reader.close()
-
-        if (texts.isNotEmpty()) {
-            memorize(texts)
+        } catch (e: IOException) {
+            Log.e("RagPipeline", "Error reading asset file $filename: ${e.message}", e)
+        } catch (e: Exception) {
+            Log.e("RagPipeline", "An unexpected error occurred during chunk memorization: ${e.message}", e)
         }
     }
 

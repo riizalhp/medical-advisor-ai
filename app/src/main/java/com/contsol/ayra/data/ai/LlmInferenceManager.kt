@@ -76,7 +76,6 @@ object LlmInferenceManager {
                     }
                     Log.i("LlmInferenceManager", "LlmInference initialized successfully.")
                     ragPipeline = RagPipeline(context.applicationContext as Application, modelFile.absolutePath)
-                    ragPipeline?.memorizeChunks(context, "knowledge/knowledge-base.txt")
                     if (ragPipeline != null) {
                         Log.i("LlmInferenceManager", "RAG Pipeline initialized successfully.")
                     }
