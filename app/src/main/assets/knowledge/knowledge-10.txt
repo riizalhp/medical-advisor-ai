@@ -1,0 +1,109 @@
+<chunk_splitter>
+
+Topik: Pengobatan Sariawan Umum
+Pengobatan sariawan ringan biasanya cukup dengan:
+
+Obat kumur (larutan garam atau NaCl)
+
+Salep kortikosteroid
+
+Makanan tinggi vitamin B dan C
+
+Menjaga kelembapan mulut
+
+<chunk_splitter>
+
+Topik: Sariawan Berat yang Perlu Penanganan Medis
+Jika sariawan sangat besar, putih kekuningan, sangat nyeri, dan tidak sembuh dalam 7–10 hari, perlu segera ke dokter.
+Kasus berat bisa disebabkan oleh:
+
+Herpes simpleks
+
+Reaksi alergi (misalnya terhadap zinc phosphate), disebut stomatitis venenata
+
+Infeksi sistemik
+
+Hipersensitivitas tipe IV
+
+<chunk_splitter>
+
+Topik: Pencegahan Sariawan
+Pencegahan sariawan sangat sederhana, yaitu:
+
+Menjaga kebersihan gigi dan mulut
+
+Menghindari karies dan kerak gigi yang tajam
+
+Sikat gigi dua kali sehari dengan tekanan lembut
+
+Hindari makanan yang terlalu pedas atau asam
+
+Perbanyak konsumsi buah dan sayur
+
+<chunk_splitter>
+
+Topik: Komplikasi Sariawan
+Sariawan yang tidak diatasi bisa menyebabkan:
+
+Tonsilitis kronis
+
+Faringitis
+
+Nyeri saat menelan (odinofagia)
+Bahkan pada beberapa kasus seperti demam tifoid dan COVID-19, sariawan bisa muncul sebagai gejala penyerta.
+
+<chunk_splitter>
+
+Topik: Peran Stres dalam Sariawan
+Stres psikologis juga berperan besar.
+Orang yang mengalami tekanan batin, kecemasan, dan stres tinggi—baik karena pekerjaan, hubungan, atau masalah hidup lainnya—lebih rentan terhadap sariawan.
+Kondisi ini bisa memperparah atau memicu ulkus berulang.
+
+<chunk_splitter>
+
+Topik: Peran Vitamin dan Nutrisi
+Sariawan sering dikaitkan dengan defisiensi:
+
+Vitamin C
+
+Vitamin B kompleks (terutama B12)
+
+Zat besi
+
+Asupan nutrisi yang cukup akan mempercepat proses penyembuhan.
+
+<chunk_splitter>
+
+Topik: Kapan Harus ke Dokter
+Segera ke dokter jika:
+
+Sariawan lebih dari 4 titik
+
+Tidak sembuh dalam 7–10 hari
+
+Disertai demam atau nyeri hebat
+
+Sariawan berulang tanpa sebab yang jelas
+
+Dokter bisa memberikan pengobatan topikal maupun sistemik yang lebih tepat.
+
+<chunk_splitter>
+
+Topik: Pengantar Tentang Sariawan
+Pertanyaan hari ini adalah tentang sariawan.
+Sariawan itu seperti luka pada mukosa rongga mulut. Kadang ada putih-putihnya, terasa perih kalau kena makanan asin, asam, dan pedas.
+Banyak yang menyepelekan, padahal sangat mengganggu aktivitas seperti makan dan berbicara.
+
+<chunk_splitter>
+
+Topik: Apakah Sariawan Menular?
+Sariawan itu menular atau tidak tergantung penyebabnya.
+Kalau karena virus, misalnya virus herpes simpleks, bisa menular lewat ciuman. Tapi kalau hanya karena tergigit atau karena kekurangan vitamin, tidak menular.
+Jadi, tergantung penyebabnya.
+
+<chunk_splitter>
+
+Topik: Penyebab Sariawan
+Penyebab sariawan bisa karena tergigit saat makan, sikat gigi terlalu keras, gigi berlubang, atau kawat gigi yang tajam.
+Bisa juga karena kekurangan vitamin, terutama B12 dan C.
+Infeksi virus atau bakteri, stres, dan gangguan imun juga bisa menyebabkan sariawan.

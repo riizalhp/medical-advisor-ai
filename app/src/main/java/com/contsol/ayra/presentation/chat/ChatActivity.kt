@@ -509,9 +509,23 @@ class ChatActivity : AppCompatActivity() {
         lifecycleScope.launch {
             showTypingIndicator()
             try {
-                val aiResponseText = LlmInferenceManager.run(originalMessage)
+                Log.d("ChatActivity", "Requesting AI response for: $originalMessage")
+                val aiResponseText = LlmInferenceManager.runWithRag(originalMessage)
                 removeTypingIndicator()
-                addNewMessage(ChatLog(messageContent = aiResponseText, isUserMessage = false))
+                if (aiResponseText != null) {
+                    val aiMessage = ChatLog(
+                        messageContent = aiResponseText, // Use the actual response
+                        isUserMessage = false
+                    )
+                    addNewMessage(aiMessage)
+                } else {
+                    Log.e("ChatActivity", "Received null response from LlmInferenceManager.")
+                    val errorMessage = ChatLog(
+                        messageContent = "Sorry, I couldn't get a response right now.",
+                        isUserMessage = false
+                    )
+                    addNewMessage(errorMessage)
+                }
             } catch (e: Exception) {
                 Log.e("ChatActivity", "Error getting AI response: ${e.message}", e)
                 removeTypingIndicator()

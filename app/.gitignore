@@ -1,1 +1,4 @@
 /build
+*.tflite
+*.task
+*.model
