@@ -1,5 +1,6 @@
 [versions]
 agp = "8.11.0"
+cameraCore = "1.4.2"
 kotlin = "2.2.0"
 coreKtx = "1.16.0"
 junit = "4.13.2"
@@ -19,8 +20,13 @@ tasksGenai = "0.10.24"
 koin = "4.0.3"
 coreKtxVersion = "1.6.1"
 room = "2.7.2"
+tasksVision = "latest.release"
 
 [libraries]
+androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraCore" }
+androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "cameraCore" }
+androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "cameraCore" }
+androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "cameraCore" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-recyclerview = { module = "androidx.recyclerview:recyclerview" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -56,6 +62,7 @@ koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = 
 
 #tasks genai
 tasks-genai = { module = "com.google.mediapipe:tasks-genai", version.ref = "tasksGenai" }
+tasks-vision = { module = "com.google.mediapipe:tasks-vision", version.ref = "tasksVision" }
 
 
 [plugins]
