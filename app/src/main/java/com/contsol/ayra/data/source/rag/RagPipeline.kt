@@ -7,6 +7,7 @@ import com.google.ai.edge.localagents.rag.chains.ChainConfig
 import com.google.ai.edge.localagents.rag.chains.RetrievalAndInferenceChain
 import com.google.ai.edge.localagents.rag.memory.DefaultSemanticTextMemory
 import com.google.ai.edge.localagents.rag.memory.SqliteVectorStore
+import com.google.ai.edge.localagents.rag.memory.VectorStore
 import com.google.ai.edge.localagents.rag.models.AsyncProgressListener
 import com.google.ai.edge.localagents.rag.models.Embedder
 import com.google.ai.edge.localagents.rag.models.GeckoEmbeddingModel
@@ -58,7 +59,10 @@ class RagPipeline(application: Application, gemmaPath: String) {
         mediaPipeLanguageModel,
         PromptBuilder(PROMPT_TEMPLATE),
         DefaultSemanticTextMemory(
-            SqliteVectorStore(768),
+            SqliteVectorStore(
+                768,
+                application.getDatabasePath("knowledge_base.db").absolutePath
+            ),
             embedder
         )
     )

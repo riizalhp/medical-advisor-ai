@@ -31,6 +31,10 @@ object LlmInferenceManager {
     // Option 2: Model from assets (ensure this matches the name in your assets folder)
     private const val MODEL_ASSET_NAME = "gemma-3n-E2B-it-int4.task"
     private const val MODEL_FILE_NAME = "gemma-3n-E2B-it-int4.task" // Name for the file in internal storage
+
+    private const val DB_ASSET_FOLDER = "databases" // Folder di dalam assets
+    private const val DB_ASSET_NAME = "knowledge_base.db" // Nama file DB di assets
+    private const val DB_FILE_NAME = "knowledge_base.db"  // Nama file di storage internal
     /**
      * Initializes the LlmInference engine if it hasn't been already.
      * This method handles model acquisition (download or copy from assets) and setup.
@@ -61,6 +65,8 @@ object LlmInferenceManager {
             // val modelFile = acquireModelByDownloading(context.applicationContext) // Option 1: Download
             val modelFile = acquireModelFromAssets(context.applicationContext)    // Option 2: Copy from Assets
 
+            val databaseFile = acquireDatabaseFromAssets(context.applicationContext)
+
             if (modelFile != null && modelFile.exists()) {
                 Log.d("LlmInferenceManager", "Model Path: ${modelFile.absolutePath}")
                 try {
@@ -76,6 +82,7 @@ object LlmInferenceManager {
                     }
                     Log.i("LlmInferenceManager", "LlmInference initialized successfully.")
                     ragPipeline = RagPipeline(context.applicationContext as Application, modelFile.absolutePath)
+                    ragPipeline?.memorizeChunks(context, "knowledge/knowledge-1.txt")
                     if (ragPipeline != null) {
                         Log.i("LlmInferenceManager", "RAG Pipeline initialized successfully.")
                     }
@@ -198,6 +205,33 @@ object LlmInferenceManager {
         }
     }
 
+    private suspend fun acquireDatabaseFromAssets(context: Context): File? {
+        val databaseFile = File(context.getDatabasePath(DB_FILE_NAME).parent, DB_FILE_NAME)
+
+        if (databaseFile.exists() && databaseFile.length() > 0) {
+            Log.d("LlmInferenceManager", "Database sudah ada di storage internal: ${databaseFile.absolutePath}")
+            return databaseFile
+        }
+
+        Log.d("LlmInferenceManager", "Menyalin database dari assets ke ${databaseFile.absolutePath}...")
+        return try {
+            withContext(Dispatchers.IO) {
+                // Pastikan direktori database ada
+                databaseFile.parentFile?.mkdirs()
+                context.assets.open("$DB_ASSET_FOLDER/$DB_ASSET_NAME").use { inputStream ->
+                    FileOutputStream(databaseFile).use { outputStream ->
+                        inputStream.copyTo(outputStream)
+                    }
+                }
+                Log.d("LlmInferenceManager", "Database berhasil disalin dari assets.")
+                databaseFile
+            }
+        } catch (e: IOException) {
+            Log.e("LlmInferenceManager", "Gagal menyalin database dari assets: ${e.message}", e)
+            databaseFile.delete() // Hapus file jika gagal
+            null
+        }
+    }
 
     fun isInitialized(): Boolean = llmInference != null
 
@@ -251,12 +285,11 @@ object LlmInferenceManager {
     fun close() {
         Log.d("LlmInferenceManager", "Closing LlmInference...")
         try {
-            llmInference?.close()
+//            llmInference?.close()
         } catch (e: Exception) {
             Log.e("LlmInferenceManager", "Error closing LlmInference: ${e.message}", e)
         } finally {
             llmInference = null
-            ragPipeline = null
             Log.d("LlmInferenceManager", "LlmInference resources released.")
             Log.d("LlmInferenceManager", "RAG Pipeline resources released.")
         }
