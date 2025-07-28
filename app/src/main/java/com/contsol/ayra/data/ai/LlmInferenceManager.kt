@@ -205,6 +205,25 @@ object LlmInferenceManager {
     }
 
     /**
+     * Generates a conclusion based on the provided user context FROM 'Aktivitas' page.
+     * @param userContext The context provided by the user.
+     */
+    suspend fun getActivityConclusion(userContext: String): String = withContext(Dispatchers.IO) {
+        val final_prompt = "Kamu ahli kesehatan manusia. Berikan kesimpulan atau rekomendasi kesehatan berdasarkan data ini: $userContext. \n Jawab dalam 1 hingga 3 kalimat pendek."
+        return@withContext run(final_prompt);
+    }
+
+    /**
+     * Generates health tips based on the provided user context After User Check In.
+     * Display in Home Page
+     * @param userContext The context provided by the user.
+     */
+    suspend fun getHealthTips(userContext: String): String = withContext(Dispatchers.IO) {
+        val final_prompt = "Kamu ahli kesehatan manusia. Berikan tips kesehatan untuk satu hari berdasarkan data ini: $userContext. \n Jawab dalam 1 kalimat pendek."
+        return@withContext run(final_prompt);
+    }
+
+    /**
      * Closes the LlmInference engine and releases resources.
      * Should be called when the LLM is no longer needed (e.g., in Application.onTerminate).
      */
@@ -274,11 +293,12 @@ object LlmInferenceManager {
     fun close() {
         Log.d("LlmInferenceManager", "Closing LlmInference...")
         try {
-//            llmInference?.close()
+            llmInference?.close()
         } catch (e: Exception) {
             Log.e("LlmInferenceManager", "Error closing LlmInference: ${e.message}", e)
         } finally {
             llmInference = null
+            ragPipeline = null
             Log.d("LlmInferenceManager", "LlmInference resources released.")
             Log.d("LlmInferenceManager", "RAG Pipeline resources released.")
         }
