@@ -35,4 +35,17 @@
     <string name="attachment_preview">Attachment Preview</string>
     <string name="remove_attachment">Remove attachment</string>
     <string name="button_capture">Button Capture</string>
+    <string name="check_in">Check In</string>
+    <string name="gejala_apa_yang_anda_rasakan">Gejala apa yang anda rasakan?</string>
+    <string name="gejala">Gejala</string>
+    <string name="bagaimana_mood_anda">Bagaimana mood anda?</string>
+    <string name="sangat_jelek">SANGAT JELEK</string>
+    <string name="kurang_baik">KURANG BAIK</string>
+    <string name="biasa_aja">BIASA AJA</string>
+    <string name="lumayan_baik">LUMAYAN BAIK</string>
+    <string name="luar_biasa">LUAR BIASA</string>
+    <string name="apakah_anda_benergi_hari_ini">Apakah anda benergi hari ini?</string>
+    <string name="anda_tidur_berapa_jam_semalam">Anda tidur berapa jam semalam?</string>
+    <string name="sampai">Sampai</string>
+    <string name="simpan">Simpan</string>
 </resources>

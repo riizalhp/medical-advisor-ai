@@ -135,7 +135,7 @@ class RagPipeline(application: Application, gemmaPath: String) {
     companion object {
         private const val CHUNK_SEPARATOR = "<chunk_splitter>"
         private const val TOKENIZER_MODEL_PATH = "/data/local/tmp/sentencepiece.model"
-        private const val GECKO_MODEL_PATH = "/data/local/tmp/gecko_1024_quant.tflite"
+        private const val GECKO_MODEL_PATH = "/data/local/tmp/Gecko_1024_quant.tflite"
         private const val USE_GPU_FOR_EMBEDDINGS = false
 
         const val PROMPT_TEMPLATE: String =

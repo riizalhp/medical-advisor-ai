@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context=".presentation.chat.ChatActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/secondary_default">
+
+            <ImageView
+                android:id="@+id/hamburger_menu"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start|center_vertical"
+                android:contentDescription="@string/ayra_chat_menu"
+                android:src="@drawable/ic_arrow_back"
+                app:tint="@color/main_50" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/check_in"
+                android:textColor="@color/main_50"
+                android:textSize="23sp"
+                android:textStyle="normal" />
+
+        </androidx.appcompat.widget.Toolbar>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <LinearLayout
+        android:id="@+id/inputGejala"
+        android:layout_width="409dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="592dp"
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="20dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:text="@string/gejala_apa_yang_anda_rasakan"
+            android:textColor="@color/dark_900"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <ImageButton
+            android:id="@+id/buttonGejala"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_round_yellow"
+            android:contentDescription="@string/gejala"
+            android:src="@drawable/ic_round_sick"
+            app:tint="@android:color/black" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/dividerGejala"
+        android:layout_width="0dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_height="5dp"
+        android:layout_marginBottom="0dp"
+        android:background="@drawable/bg_green_box"
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="20dp"
+        app:layout_constraintTop_toBottomOf="@id/inputGejala"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent">
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/inputMood"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/main_50"
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:padding="20dp"
+        app:layout_constraintBottom_toTopOf="@+id/inputEnergi"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:layout_marginBottom="8dp"
+            android:text="@string/bagaimana_mood_anda"
+            android:textColor="@color/dark_900"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <RadioGroup
+            android:id="@+id/rgMood"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="30dp"
+                android:button="@null"
+                android:drawableTop="@android:drawable/btn_radio"
+                android:gravity="center_horizontal"
+                android:text="@string/sangat_jelek"
+                android:textSize="11sp" />
+
+            <RadioButton
+                android:layout_width="52dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="30dp"
+                android:button="@null"
+                android:drawableTop="@android:drawable/btn_radio"
+                android:gravity="center_horizontal"
+                android:text="@string/kurang_baik"
+                android:textSize="11sp" />
+
+            <RadioButton
+                android:layout_width="48dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="30dp"
+                android:button="@null"
+                android:drawableTop="@android:drawable/btn_radio"
+                android:gravity="center_horizontal"
+                android:text="@string/biasa_aja"
+                android:textSize="11sp" />
+
+            <RadioButton
+                android:layout_width="64dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="30dp"
+                android:button="@null"
+                android:drawableTop="@android:drawable/btn_radio"
+                android:gravity="center_horizontal"
+                android:text="@string/lumayan_baik"
+                android:textSize="11sp" />
+
+            <RadioButton
+                android:layout_width="48dp"
+                android:layout_height="wrap_content"
+                android:button="@null"
+                android:drawableTop="@android:drawable/btn_radio"
+                android:gravity="center_horizontal"
+                android:text="@string/luar_biasa"
+                android:textSize="11sp" />
+
+        </RadioGroup>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/inputEnergi"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/main_50"
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:padding="20dp"
+        app:layout_constraintBottom_toTopOf="@+id/inputTidur"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:layout_marginBottom="8dp"
+            android:text="@string/apakah_anda_benergi_hari_ini"
+            android:textColor="@color/dark_900"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <RadioGroup
+            android:id="@+id/rgEnergi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="30dp"
+                android:button="@null"
+                android:drawableTop="@android:drawable/btn_radio"
+                android:gravity="center_horizontal"
+                android:text="@string/sangat_jelek"
+                android:textSize="11sp" />
+
+            <RadioButton
+                android:layout_width="52dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="30dp"
+                android:button="@null"
+                android:drawableTop="@android:drawable/btn_radio"
+                android:gravity="center_horizontal"
+                android:text="@string/kurang_baik"
+                android:textSize="11sp" />
+
+            <RadioButton
+                android:layout_width="48dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="30dp"
+                android:button="@null"
+                android:drawableTop="@android:drawable/btn_radio"
+                android:gravity="center_horizontal"
+                android:text="@string/biasa_aja"
+                android:textSize="11sp" />
+
+            <RadioButton
+                android:layout_width="64dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="30dp"
+                android:button="@null"
+                android:drawableTop="@android:drawable/btn_radio"
+                android:gravity="center_horizontal"
+                android:text="@string/lumayan_baik"
+                android:textSize="11sp" />
+
+            <RadioButton
+                android:layout_width="48dp"
+                android:layout_height="wrap_content"
+                android:button="@null"
+                android:drawableTop="@android:drawable/btn_radio"
+                android:gravity="center_horizontal"
+                android:text="@string/luar_biasa"
+                android:textSize="11sp" />
+
+        </RadioGroup>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/inputTidur"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:background="@color/main_50"
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:padding="20dp"
+        app:layout_constraintBottom_toTopOf="@id/buttonSubmit"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_marginBottom="8dp"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:text="@string/anda_tidur_berapa_jam_semalam"
+            android:textColor="@color/dark_900"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:weightSum="3"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <TextView
+                android:id="@+id/tvTidurDari"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_green_box"
+                android:gravity="center"
+                android:text="@string/timestamp_example"
+                android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/sampai"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tvTidurSampai"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_green_box"
+                android:gravity="center"
+                android:text="@string/timestamp_example"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/buttonSubmit"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginBottom="16dp"
+        android:backgroundTint="@color/secondary_default"
+        android:text="@string/simpan"
+        android:textSize="19sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_begin="20dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
