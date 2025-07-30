@@ -1,9 +1,16 @@
 package com.contsol.ayra.di
 
+import com.contsol.ayra.presentation.main.MainViewModel
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 object AppModules {
+    private val appModule =
+        module {
+            viewModel { MainViewModel() }
+        }
+
     private val networkModule =
         module {
 //            single<TerbangAjaApiService> { TerbangAjaApiService.invoke(androidContext()) }
@@ -36,6 +43,7 @@ object AppModules {
 
     val modules =
         listOf<Module>(
+            appModule,
             networkModule,
             localModule,
             datasource,

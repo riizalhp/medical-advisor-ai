@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
 import com.contsol.ayra.data.source.rag.RagPipeline
+import com.contsol.ayra.data.state.InitializationState
 import com.google.mediapipe.framework.image.BitmapImageBuilder
 import com.google.mediapipe.framework.image.MPImage
 import com.google.mediapipe.tasks.genai.llminference.GraphOptions
@@ -32,7 +33,7 @@ object LlmInferenceManager {
     private const val MODEL_ASSET_NAME = "gemma-3n-E2B-it-int4.task"
     private const val MODEL_FILE_NAME = "gemma-3n-E2B-it-int4.task" // Name for the file in internal storage
 
-    private const val DB_ASSET_FOLDER = "databases" // Folder di dalam assets
+    private const val DB_ASSET_FOLDER = "database" // Folder di dalam assets
     private const val DB_ASSET_NAME = "knowledge_base.db" // Nama file DB di assets
     private const val DB_FILE_NAME = "knowledge_base.db"  // Nama file di storage internal
     /**
@@ -43,10 +44,15 @@ object LlmInferenceManager {
      * @param onInitialized Optional callback that is invoked on the main thread
      *                      once initialization is successful.
      */
-    fun initializeIfNeeded(context: Context, onInitialized: () -> Unit = {}) {
+    fun initializeIfNeeded(
+        context: Context,
+        onProgress: (InitializationState) -> Unit,
+        onInitialized: () -> Unit = {}
+    ) {
         CoroutineScope(Dispatchers.Main).launch {
             initializationMutex.withLock {
                 if (isInitialized()) {
+                    onProgress(InitializationState.Complete)
                     onInitialized()
                     return@launch
                 }
@@ -57,27 +63,60 @@ object LlmInferenceManager {
                 isInitializing = true
             }
 
-            Log.d("LlmInferenceManager", "Starting model initialization...")
-            val modelFile = acquireModelFromAssets(context.applicationContext)
+            onProgress(InitializationState.NotStarted)
 
-            val databaseFile = acquireDatabaseFromAssets(context.applicationContext)
+            onProgress(InitializationState.CopyingModel(0)) // Start model copy
+            val modelFile = acquireModelFromAssets(context.applicationContext) { progressPercentage ->
+                onProgress(InitializationState.CopyingModel(progressPercentage))
+            }
 
-            if (modelFile != null && modelFile.exists()) {
+            if (modelFile == null || !modelFile.exists()) {
+                Log.e("LlmInferenceManager", "Model file not available. Initialization failed.")
+                val errorMsg = "Failed to acquire model."
+                onProgress(InitializationState.Error(errorMsg))
+                initializationMutex.withLock { isInitializing = false }
+                // Potentially notify onInitialized with an error state if you adapt it
+                return@launch
+            }
+            onProgress(InitializationState.CopyingModel(100)) // Finish model copy
+
+            // Database Acquisition Progress
+            onProgress(InitializationState.CopyingDatabase(0)) // Start DB copy
+            val databaseFile = acquireDatabaseFromAssets(context.applicationContext) { progressPercentage ->
+                onProgress(InitializationState.CopyingDatabase(progressPercentage))
+            }
+
+            if (databaseFile == null || !databaseFile.exists()) {
+                Log.e("LlmInferenceManager", "Database file not available. Initialization failed.")
+                val errorMsg = "Failed to acquire database."
+                onProgress(InitializationState.Error(errorMsg))
+                initializationMutex.withLock { isInitializing = false }
+                return@launch
+            }
+            onProgress(InitializationState.CopyingDatabase(100)) // Finish DB copy
+
+            onProgress(InitializationState.InitializingLlm)
+            if (modelFile.exists()) {
                 Log.d("LlmInferenceManager", "Model Path: ${modelFile.absolutePath}")
                 try {
+                    val taskOptions = LlmInference.LlmInferenceOptions.builder()
+                        .setModelPath(modelFile.absolutePath)
+                        .setMaxNumImages(1)
+                        // .setMaxTopK(64) // Moved to session options as per reference
+                        // Vision modality might also be enabled here for some models globally,
+                        // but your reference shows it at the session level.
+                        // .setGraphOptions(GraphOptions.newBuilder().setEnableVisionModality(true).build()) // Example global setting
+                        .setPreferredBackend(LlmInference.Backend.CPU)
+                        .setMaxTokens(1024)
+                        .build()
+
                     llmInference = withContext(Dispatchers.IO) {
-                        val taskOptions = LlmInference.LlmInferenceOptions.builder()
-                            .setModelPath(modelFile.absolutePath)
-                            .setMaxNumImages(1)
-                            // .setMaxTopK(64) // Moved to session options as per reference
-                            // Vision modality might also be enabled here for some models globally,
-                            // but your reference shows it at the session level.
-                            // .setGraphOptions(GraphOptions.newBuilder().setEnableVisionModality(true).build()) // Example global setting
-                            .build()
                         LlmInference.createFromOptions(context.applicationContext, taskOptions)
                     }
                     Log.i("LlmInferenceManager", "LlmInference initialized successfully.")
-                    ragPipeline = RagPipeline(context.applicationContext as Application, modelFile.absolutePath)
+
+                    onProgress(InitializationState.InitializingRag)
+                    ragPipeline = RagPipeline(context.applicationContext as Application, taskOptions)
                     ragPipeline?.memorizeChunks(context, "knowledge/knowledge-1.txt")
                     if (ragPipeline != null) {
                         Log.i("LlmInferenceManager", "RAG Pipeline initialized successfully.")
@@ -88,19 +127,25 @@ object LlmInferenceManager {
                         initializationListeners.forEach { it() }
                         initializationListeners.clear()
                     }
-
+                    onProgress(InitializationState.Complete)
                 } catch (e: Exception) {
                     Log.e("LlmInferenceManager", "Failed to initialize LlmInference: ${e.message}", e)
+                    val errorMsg = "Error during LLM/RAG setup: ${e.localizedMessage}"
+                    onProgress(InitializationState.Error(errorMsg))
                     initializationMutex.withLock { isInitializing = false }
                 }
             } else {
                 Log.e("LlmInferenceManager", "Model file not available. Initialization failed.")
+                onProgress(InitializationState.Error("Model file not available. Initialization failed."))
                 initializationMutex.withLock { isInitializing = false }
             }
         }
     }
 
-    private suspend fun acquireModelFromAssets(context: Context): File? {
+    private suspend fun acquireModelFromAssets(
+        context: Context,
+        onProgress: (Int) -> Unit
+    ): File? {
         val modelFile = File(context.filesDir, MODEL_FILE_NAME)
         // Activate lines below to delete existing model if it exists and re-copy from assets (use when existing model corrupted)
         if (modelFile.exists()) {
@@ -112,28 +157,52 @@ object LlmInferenceManager {
             }
             if (!deleted && modelFile.exists()) Log.w("LlmInferenceManager", "Could not delete existing model.")
             else if (deleted) Log.d("LlmInferenceManager", "Successfully deleted existing model.")
+            onProgress(0)
         }
         Log.d("LlmInferenceManager", "Copying model from assets to ${modelFile.absolutePath}...")
         return try {
             withContext(Dispatchers.IO) {
-                context.assets.open(MODEL_ASSET_NAME).use { input -> FileOutputStream(modelFile).use { output -> input.copyTo(output) } }
+                context.assets.open(MODEL_ASSET_NAME).use { input ->
+                    val totalBytes = input.available().toLong()
+                    var bytesCopied: Long = 0
+                    FileOutputStream(modelFile).use { output ->
+                        val buffer = ByteArray(8 * 1024)
+                        var read: Int
+                        while (input.read(buffer).also { read = it } != -1) {
+                            output.write(buffer, 0, read)
+                            bytesCopied += read
+                            val progress = ((bytesCopied * 100) / totalBytes).toInt()
+                            // Throttle progress updates if they are too frequent
+                            if (progress % 5 == 0 && progress <= 100) { // Update every 5%
+                                onProgress(progress)
+                            }
+                        }
+                    }
+                }
                 Log.d("LlmInferenceManager", "Model copied from assets successfully.")
+                onProgress(100)
                 modelFile
             }
         } catch (e: IOException) {
             Log.e("LlmInferenceManager", "Failed to copy model from assets: ${e.message}", e)
             if (modelFile.exists()) modelFile.delete()
+            onProgress(0)
             null
         }
     }
 
-    private suspend fun acquireDatabaseFromAssets(context: Context): File? {
+    private suspend fun acquireDatabaseFromAssets(
+        context: Context,
+        onProgress: (Int) -> Unit
+    ): File? {
         val databaseFile = File(context.getDatabasePath(DB_FILE_NAME).parent, DB_FILE_NAME)
 
         if (databaseFile.exists() && databaseFile.length() > 0) {
             Log.d("LlmInferenceManager", "Database sudah ada di storage internal: ${databaseFile.absolutePath}")
+            onProgress(100)
             return databaseFile
         }
+        onProgress(0)
 
         Log.d("LlmInferenceManager", "Menyalin database dari assets ke ${databaseFile.absolutePath}...")
         return try {
@@ -141,16 +210,29 @@ object LlmInferenceManager {
                 // Pastikan direktori database ada
                 databaseFile.parentFile?.mkdirs()
                 context.assets.open("$DB_ASSET_FOLDER/$DB_ASSET_NAME").use { inputStream ->
+                    val totalBytes = inputStream.available().toLong()
+                    var bytesCopied: Long = 0
                     FileOutputStream(databaseFile).use { outputStream ->
-                        inputStream.copyTo(outputStream)
+                        val buffer = ByteArray(8 * 1024)
+                        var read: Int
+                        while (inputStream.read(buffer).also { read = it } != -1) {
+                            outputStream.write(buffer, 0, read)
+                            bytesCopied += read
+                            val progress = ((bytesCopied * 100) / totalBytes).toInt()
+                            if (progress % 5 == 0 && progress <= 100) {
+                                onProgress(progress)
+                            }
+                        }
                     }
                 }
                 Log.d("LlmInferenceManager", "Database berhasil disalin dari assets.")
+                onProgress(100)
                 databaseFile
             }
         } catch (e: IOException) {
             Log.e("LlmInferenceManager", "Gagal menyalin database dari assets: ${e.message}", e)
             databaseFile.delete() // Hapus file jika gagal
+            onProgress(0)
             null
         }
     }

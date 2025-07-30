@@ -33,19 +33,14 @@ import java.util.Optional
 import kotlin.jvm.optionals.getOrNull
 
 /** The RAG pipeline for LLM generation. */
-class RagPipeline(application: Application, gemmaPath: String) {
-    private val mediaPipeLanguageModelOptions: LlmInferenceOptions =
-        LlmInferenceOptions.builder().setModelPath(
-            gemmaPath
-        ).setPreferredBackend(LlmInference.Backend.CPU).setMaxTokens(1024).build()
-
+class RagPipeline(application: Application, llmInferenceOptions: LlmInferenceOptions) {
     private val mediaPipeLanguageModelSessionOptions: LlmInferenceSession.LlmInferenceSessionOptions =
         LlmInferenceSession.LlmInferenceSessionOptions.builder().setTemperature(1.0f)
             .setTopP(0.95f).setTopK(64).build()
 
     private val mediaPipeLanguageModel: MediaPipeLlmBackend =
         MediaPipeLlmBackend(
-            application.applicationContext, mediaPipeLanguageModelOptions,
+            application.applicationContext, llmInferenceOptions,
             mediaPipeLanguageModelSessionOptions
         )
 
@@ -139,7 +134,7 @@ class RagPipeline(application: Application, gemmaPath: String) {
     companion object {
         private const val CHUNK_SEPARATOR = "<chunk_splitter>"
         private const val TOKENIZER_MODEL_PATH = "/data/local/tmp/sentencepiece.model"
-        private const val GECKO_MODEL_PATH = "/data/local/tmp/gecko_1024_quant.tflite"
+        private const val GECKO_MODEL_PATH = "/data/local/tmp/Gecko_1024_quant.tflite"
         private const val USE_GPU_FOR_EMBEDDINGS = false
 
         const val PROMPT_TEMPLATE: String =
