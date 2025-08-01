@@ -1,7 +1,6 @@
 package com.contsol.ayra.presentation.main
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.contsol.ayra.data.ai.LlmInferenceManager
@@ -42,12 +41,6 @@ class MainViewModel: ViewModel() {
                     if (state == InitializationState.Complete) {
                         _isLlmReady = true
                     }
-                },
-                onInitialized = {
-                    // This callback from LlmInferenceManager confirms its internal completion.
-                    // The _initializationState being Complete is the primary UI driver.
-                    _isLlmReady = true
-                    Log.i("MainViewModel", "LLM Model has been initialized (onInitialized callback).")
                 }
             )
         }

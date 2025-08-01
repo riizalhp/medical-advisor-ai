@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity() {
         applyEdgeToEdgeInsets()
         setClickListener()
 
-        mainViewModel.startLlmInitialization(this)
+        mainViewModel.startLlmInitialization(applicationContext)
 
         observeInitializationState()
     }
@@ -56,6 +56,9 @@ class MainActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) { // Collect when Activity is started
                 mainViewModel.initializationState.collect { state ->
                     updateProgressUI(state)
+                    if (state is InitializationState.Complete) {
+                        Log.i("MainActivity", "LLM Model has been initialized and is ready.")
+                    }
                 }
             }
         }

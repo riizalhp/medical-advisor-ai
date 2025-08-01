@@ -10,6 +10,7 @@ espressoCore = "3.6.1"
 appcompat = "1.7.1"
 kotlinxCoroutinesCore = "1.10.2"
 kotlinxCoroutinesGuava = "<latest_version>"
+kotlinxSerializationJson = "1.9.0"
 localagentsRag = "0.2.0"
 material = "1.12.0"
 activity = "1.10.1"
@@ -43,6 +44,7 @@ androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-co
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
 kotlinx-coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-guava", version.ref = "kotlinxCoroutinesGuava" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 localagents-rag = { module = "com.google.ai.edge.localagents:localagents-rag", version.ref = "localagentsRag" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
@@ -74,6 +76,7 @@ koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = 
 #tasks genai
 tasks-genai = { module = "com.google.mediapipe:tasks-genai", version.ref = "tasksGenai" }
 tasks-genai-v01025 = { module = "com.google.mediapipe:tasks-genai", version.ref = "tasksGenaiVersion" }
+#noinspection Aligned16KB
 tasks-vision = { module = "com.google.mediapipe:tasks-vision", version.ref = "tasksVision" }
 
 
