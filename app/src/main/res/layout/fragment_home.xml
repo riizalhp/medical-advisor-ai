@@ -260,7 +260,6 @@
                         android:textSize="16sp"
                         android:textStyle="bold"
                         android:textColor="@color/black" />
-
                 </FrameLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>

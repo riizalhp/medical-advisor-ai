@@ -15,11 +15,13 @@
         android:name="com.contsol.ayra.presentation.history.HistoryFragment"
         android:label="fragment_history"
         tools:layout="@layout/fragment_history" />
+
     <fragment
-        android:id="@+id/insightFragment"
-        android:name="com.contsol.ayra.presentation.insight.InsightFragment"
-        android:label="fragment_insight"
-        tools:layout="@layout/fragment_insight" />
+        android:id="@+id/activityFragment"
+        android:name="com.contsol.ayra.presentation.activity.ActivityFragment"
+        android:label="fragment_activity"
+        tools:layout="@layout/fragment_activity" />
+
     <fragment
         android:id="@+id/profileFragment"
         android:name="com.contsol.ayra.presentation.profile.ProfileFragment"

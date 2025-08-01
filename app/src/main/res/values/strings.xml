@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">AYRA</string>
     <string name="text_menu_home">Home</string>
-    <string name="text_menu_insight">Insight</string>
+    <string name="text_menu_activity">Activity</string>
     <string name="text_menu_history">History</string>
     <string name="text_menu_profile">Profile</string>
     <!-- TODO: Remove or change this placeholder text -->
@@ -11,7 +11,7 @@
     <string name="text_home_check_in">CHECK IN</string>
     <string name="text_home_tittle_saran">Saran AI Hari ini</string>
     <string name="text_home_isi_saran">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum.</string>
-    <string name="text_home_btn_konsultasi">MULAI KONSULTASI!</string>
+    <string name="text_home_btn_konsultasi">MULAI KONSULTASI</string>
     <string name="text_home_tittle_tips">Tips Sehat Hari ini</string>
     <string name="text_home_tittle_summary">Ringkasan Aktivitas</string>
     <string name="text_home_see_all">LIHAT SELENGKAPNYA</string>
@@ -35,4 +35,20 @@
     <string name="attachment_preview">Attachment Preview</string>
     <string name="remove_attachment">Remove attachment</string>
     <string name="button_capture">Button Capture</string>
+    <string name="text_statistik">Statistik</string>
+    <string name="text_strip">-</string>
+    <string name="text_minum_title">Sudahkah anda minum air putih?</string>
+    <string name="text_simpan">SIMPAN</string>
+    <string name="text_jalan_title">Ayo Jalan</string>
+    <string name="text_header_activity">Activity</string>
+    <string name="text_counter">3/8</string>
+    <string name="text_counter_minum">1</string>
+    <string name="text_total_jalan">Anda sudah berjalan 0 m</string>
+    <string name="text_kurang_jalan">Jalan 300 m lagi untuk mencapai jarak optimal harian</string>
+    <string name="text_makan_title">Jangan lupa makan makanan bergizi</string>
+    <string name="text_makan_counter">1</string>
+    <string name="text_total_makan">1/3</string>
+    <string name="text_kesimpulan">Kesimpulan\nAnda Sehat Hari ini</string>
+    <string name="minum_progress">%1$d/8</string>
+    <string name="makan_progress">%1$d/3</string>
 </resources>
