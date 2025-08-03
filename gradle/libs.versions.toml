@@ -30,7 +30,6 @@ tasksGenaiVersion = "0.10.25"
 tasksVision = "latest.release"
 viewpager2 = "1.1.0"
 coreSplashScreen = "1.0.1"
-viewpager2 = "1.0.0"
 appintro = "6.3.1"
 
 [libraries]
@@ -73,7 +72,6 @@ androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
-core-ktx = { group = "androidx.test", name = "core-ktx", version.ref = "coreKtxVersion" }
 #koin
 koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
 
@@ -85,9 +83,6 @@ tasks-vision = { module = "com.google.mediapipe:tasks-vision", version.ref = "ta
 
 #splash
 core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashScreen" }
-
-#ViewPager2
-viewpager2 = { group = "androidx.viewpager2", name = "viewpager2", version.ref = "viewpager2" }
 
 #AppIntro
 appintro = { group = "com.github.appintro", name = "appintro", version.ref = "appintro" }

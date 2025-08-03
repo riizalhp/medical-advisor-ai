@@ -17,8 +17,6 @@ import androidx.navigation.ui.setupWithNavController
 import com.contsol.ayra.R
 import com.contsol.ayra.databinding.ActivityMainBinding
 import com.contsol.ayra.data.state.InitializationState
-import com.contsol.ayra.data.ai.LlmInferenceManager
-import com.contsol.ayra.databinding.ActivityMainBinding
 import com.contsol.ayra.presentation.chat.ChatActivity
 import kotlinx.coroutines.launch
 
