@@ -3,6 +3,18 @@ package com.contsol.ayra.di
 import com.contsol.ayra.presentation.main.MainViewModel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.viewModel
+import android.content.SharedPreferences
+import com.contsol.ayra.data.datasource.ActivityDataSource
+import com.contsol.ayra.data.datasource.ActivityDataSourceImpl
+import com.contsol.ayra.data.repository.ActivityRepository
+import com.contsol.ayra.data.repository.ActivityRepositoryImpl
+import com.contsol.ayra.data.source.local.preference.ActivityPreference
+import com.contsol.ayra.data.source.local.preference.ActivityPreferenceImpl
+import com.contsol.ayra.presentation.activity.ActivityViewModel
+import com.contsol.ayra.utils.SharedPreferenceUtils
+import org.koin.android.ext.koin.androidContext
+import org.koin.core.module.Module
+import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 object AppModules {
@@ -13,32 +25,31 @@ object AppModules {
 
     private val networkModule =
         module {
-//            single<TerbangAjaApiService> { TerbangAjaApiService.invoke(androidContext()) }
         }
     private val localModule =
         module {
-//            single<AppDatabase> { AppDatabase.createInstance(androidContext()) }
-
+            single<SharedPreferences> {
+                SharedPreferenceUtils.createPreference(
+                    androidContext(),
+                    ActivityPreferenceImpl.PREF_NAME,
+                )
+            }
+            single<ActivityPreference> { ActivityPreferenceImpl(get()) }
         }
 
     private val datasource =
         module {
-//            single<AuthDataSource> { AuthDataSourceImpl(get(), get()) }
+            single<ActivityDataSource> { ActivityDataSourceImpl(get()) }
         }
 
     private val repository =
         module {
-//            single<AuthRepository> { AuthRepositoryImpl(get()) }
+            single<ActivityRepository> { ActivityRepositoryImpl(get()) }
         }
 
     private val viewModelModule =
         module {
-//            viewModelOf(::HomeViewModel)
-//            viewModel { params ->
-//                DetailFavouriteViewModel(
-//                    extras = params.get(),
-//                )
-//            }
+            viewModelOf(::ActivityViewModel)
         }
 
     val modules =

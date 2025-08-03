@@ -19,6 +19,7 @@ ksp = "2.2.0-2.0.2"
 coil = "2.7.0"
 lifecycle = "2.9.1"
 fragment-ktx = "1.8.8"
+mpandroidchart = "3.1.0"
 navigationFragmentKtx = "2.9.1"
 navigationUiKtx = "2.9.1"
 tasksGenai = "0.10.24"
@@ -49,7 +50,7 @@ localagents-rag = { module = "com.google.ai.edge.localagents:localagents-rag", v
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
-
+mpandroidchart = { module = "com.github.PhilJay:MPAndroidChart", version.ref = "mpandroidchart" }
 # coil image loader
 coil = { group = "io.coil-kt", name = "coil", version.ref = "coil" }
 
