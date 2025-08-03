@@ -69,6 +69,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:<latest_version>")
     testImplementation("androidx.test:core-ktx:1.5.0")
+    implementation(libs.mpandroidchart)
     implementation(libs.tasks.vision)
     implementation(libs.koin.android)
     implementation(libs.androidx.camera.core)
