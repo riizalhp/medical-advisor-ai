@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateProgressUI(state: InitializationState) {
         // Hide all progress elements by default, then show relevant ones
-        binding.progressOverlayContainer.visibility = View.VISIBLE
+        binding.progressCardView.visibility = View.VISIBLE
         binding.pbLinearProgress.visibility = View.GONE
         binding.pbCircularProgress.visibility = View.GONE
 
@@ -94,7 +94,7 @@ class MainActivity : AppCompatActivity() {
                 binding.pbCircularProgress.visibility = View.VISIBLE
             }
             InitializationState.Complete -> {
-                binding.progressOverlayContainer.visibility = View.GONE // Hide overlay on completion
+                binding.progressCardView.visibility = View.GONE // Hide overlay on completion
                 Log.i("MainActivity", "LLM Model has been initialized and is ready.")
                 // FAB will now work as mainViewModel.isLlmReady will be true
             }
