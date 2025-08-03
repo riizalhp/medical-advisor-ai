@@ -65,7 +65,6 @@ dependencies {
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.tasks.genai)
     ksp(libs.room.compiler)
-
     implementation("com.google.ai.edge.localagents:localagents-rag:0.1.0")
     implementation("com.google.mediapipe:tasks-genai:0.10.24")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
@@ -78,5 +77,7 @@ dependencies {
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
+    implementation(libs.core.splashscreen)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.appintro)
 }
