@@ -7,6 +7,7 @@ import com.google.ai.edge.localagents.rag.chains.ChainConfig
 import com.google.ai.edge.localagents.rag.chains.RetrievalAndInferenceChain
 import com.google.ai.edge.localagents.rag.memory.DefaultSemanticTextMemory
 import com.google.ai.edge.localagents.rag.memory.SqliteVectorStore
+import com.google.ai.edge.localagents.rag.memory.VectorStore
 import com.google.ai.edge.localagents.rag.models.AsyncProgressListener
 import com.google.ai.edge.localagents.rag.models.Embedder
 import com.google.ai.edge.localagents.rag.models.GeckoEmbeddingModel
@@ -32,19 +33,14 @@ import java.util.Optional
 import kotlin.jvm.optionals.getOrNull
 
 /** The RAG pipeline for LLM generation. */
-class RagPipeline(application: Application, gemmaPath: String) {
-    private val mediaPipeLanguageModelOptions: LlmInferenceOptions =
-        LlmInferenceOptions.builder().setModelPath(
-            gemmaPath
-        ).setPreferredBackend(LlmInference.Backend.CPU).setMaxTokens(1024).build()
-
+class RagPipeline(application: Application, llmInferenceOptions: LlmInferenceOptions) {
     private val mediaPipeLanguageModelSessionOptions: LlmInferenceSession.LlmInferenceSessionOptions =
         LlmInferenceSession.LlmInferenceSessionOptions.builder().setTemperature(1.0f)
             .setTopP(0.95f).setTopK(64).build()
 
     private val mediaPipeLanguageModel: MediaPipeLlmBackend =
         MediaPipeLlmBackend(
-            application.applicationContext, mediaPipeLanguageModelOptions,
+            application.applicationContext, llmInferenceOptions,
             mediaPipeLanguageModelSessionOptions
         )
 
@@ -58,7 +54,10 @@ class RagPipeline(application: Application, gemmaPath: String) {
         mediaPipeLanguageModel,
         PromptBuilder(PROMPT_TEMPLATE),
         DefaultSemanticTextMemory(
-            SqliteVectorStore(768),
+            SqliteVectorStore(
+                768,
+                application.getDatabasePath("knowledge_base.db").absolutePath
+            ),
             embedder
         )
     )
@@ -135,7 +134,7 @@ class RagPipeline(application: Application, gemmaPath: String) {
     companion object {
         private const val CHUNK_SEPARATOR = "<chunk_splitter>"
         private const val TOKENIZER_MODEL_PATH = "/data/local/tmp/sentencepiece.model"
-        private const val GECKO_MODEL_PATH = "/data/local/tmp/gecko_1024_quant.tflite"
+        private const val GECKO_MODEL_PATH = "/data/local/tmp/Gecko_1024_quant.tflite"
         private const val USE_GPU_FOR_EMBEDDINGS = false
 
         const val PROMPT_TEMPLATE: String =

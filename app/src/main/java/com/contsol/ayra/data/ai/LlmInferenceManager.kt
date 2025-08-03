@@ -5,88 +5,154 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
+import com.contsol.ayra.data.source.local.database.model.Tips
 import com.contsol.ayra.data.source.rag.RagPipeline
+import com.contsol.ayra.data.state.InitializationState
 import com.google.mediapipe.framework.image.BitmapImageBuilder
 import com.google.mediapipe.framework.image.MPImage
 import com.google.mediapipe.tasks.genai.llminference.GraphOptions
 import com.google.mediapipe.tasks.genai.llminference.LlmInference
 import com.google.mediapipe.tasks.genai.llminference.LlmInferenceSession
 import com.google.mediapipe.tasks.genai.llminference.LlmInferenceSession.LlmInferenceSessionOptions
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
 object LlmInferenceManager {
     private var llmInference: LlmInference? = null
-    private var isInitializing = false
     private val initializationMutex = Mutex() // To prevent concurrent initialization attempts
-    private var initializationListeners = mutableListOf<() -> Unit>() // To queue listeners if init is in progress
     private var ragPipeline: RagPipeline? = null
 
+    private var _isReady = MutableStateFlow(false)
+    val isReady = _isReady.asStateFlow()
+
     private const val MODEL_ASSET_NAME = "gemma-3n-E2B-it-int4.task"
-    private const val MODEL_FILE_NAME = "gemma-3n-E2B-it-int4.task"
+    private const val MODEL_FILE_NAME = "gemma-3n-E2B-it-int4.task" // Name for the file in internal storage
 
-    fun initializeIfNeeded(context: Context, onInitialized: () -> Unit = {}) {
-        CoroutineScope(Dispatchers.Main).launch {
-            initializationMutex.withLock {
-                if (isInitialized()) {
-                    onInitialized()
-                    return@launch
-                }
-                if (isInitializing) {
-                    initializationListeners.add(onInitialized)
-                    return@launch
-                }
-                isInitializing = true
+    private const val DB_ASSET_FOLDER = "database" // Folder di dalam assets
+    private const val DB_ASSET_NAME = "knowledge_base.db" // Nama file DB di assets
+    private const val DB_FILE_NAME = "knowledge_base.db"  // Nama file di storage internal
+    /**
+     * Initializes the LlmInference engine if it hasn't been already.
+     * This method handles model acquisition (download or copy from assets) and setup.
+     *
+     * @param context Application context.
+     *                      once initialization is successful.
+     */
+    suspend fun initializeIfNeeded(
+        context: Context,
+        onProgress: (InitializationState) -> Unit,
+    ) {
+        // Early exit if already ready (outside the mutex for quick check)
+        if (_isReady.value) {
+            Log.d("LlmInferenceManager", "Already initialized. Skipping.")
+            onProgress(InitializationState.Complete) // Notify progress that it's already complete
+            return
+        }
+
+        initializationMutex.withLock {
+            // Double-check readiness after acquiring the lock, in case it completed while waiting
+            if (_isReady.value) {
+                Log.d("LlmInferenceManager", "Initialized while waiting for lock. Skipping.")
+                onProgress(InitializationState.Complete)
+                return
             }
 
-            Log.d("LlmInferenceManager", "Starting model initialization...")
-            val modelFile = acquireModelFromAssets(context.applicationContext)
+            Log.d("LlmInferenceManager", "Initializing LlmInferenceManager...")
+            // No need for 'isInitializing = true' if the mutex handles concurrency
+            // and _isReady handles the final state.
 
-            if (modelFile != null && modelFile.exists()) {
-                Log.d("LlmInferenceManager", "Model Path: ${modelFile.absolutePath}")
-                try {
-                    llmInference = withContext(Dispatchers.IO) {
-                        val taskOptions = LlmInference.LlmInferenceOptions.builder()
-                            .setModelPath(modelFile.absolutePath)
-                            .setMaxNumImages(1)
-                            // .setMaxTopK(64) // Moved to session options as per reference
-                            // Vision modality might also be enabled here for some models globally,
-                            // but your reference shows it at the session level.
-                            // .setGraphOptions(GraphOptions.newBuilder().setEnableVisionModality(true).build()) // Example global setting
-                            .build()
-                        LlmInference.createFromOptions(context.applicationContext, taskOptions)
-                    }
-                    Log.i("LlmInferenceManager", "LlmInference initialized successfully.")
-                    ragPipeline = RagPipeline(context.applicationContext as Application, modelFile.absolutePath)
-                    if (ragPipeline != null) {
-                        Log.i("LlmInferenceManager", "RAG Pipeline initialized successfully.")
-                    }
-                    initializationMutex.withLock {
-                        isInitializing = false
-                        onInitialized()
-                        initializationListeners.forEach { it() }
-                        initializationListeners.clear()
-                    }
+            try {
+                onProgress(InitializationState.NotStarted) // Initial progress update
 
-                } catch (e: Exception) {
-                    Log.e("LlmInferenceManager", "Failed to initialize LlmInference: ${e.message}", e)
-                    initializationMutex.withLock { isInitializing = false }
+                // All potentially long-running operations should be within a proper coroutine context
+                // The withContext(Dispatchers.IO) here is good.
+
+                // --- Model Acquisition ---
+                onProgress(InitializationState.CopyingModel(0))
+                val modelFile = acquireModelFromAssets(context.applicationContext) { progressPercentage ->
+                    onProgress(InitializationState.CopyingModel(progressPercentage))
                 }
-            } else {
-                Log.e("LlmInferenceManager", "Model file not available. Initialization failed.")
-                initializationMutex.withLock { isInitializing = false }
+                if (modelFile == null || !modelFile.exists()) {
+                    val errorMsg = "Failed to acquire model."
+                    Log.e("LlmInferenceManager", "Model file not available. Initialization failed.")
+                    onProgress(InitializationState.Error(errorMsg))
+                    _isReady.value = false // Ensure ready state is false
+                    // No need to manage isInitializing manually with mutex and _isReady.value
+                    return // Exit from withLock block
+                }
+                onProgress(InitializationState.CopyingModel(100))
+
+                // --- Database Acquisition ---
+                onProgress(InitializationState.CopyingDatabase(0))
+                val databaseFile = acquireDatabaseFromAssets(context.applicationContext) { progressPercentage ->
+                    onProgress(InitializationState.CopyingDatabase(progressPercentage))
+                }
+                if (databaseFile == null || !databaseFile.exists()) {
+                    val errorMsg = "Failed to acquire database."
+                    Log.e("LlmInferenceManager", "Database file not available. Initialization failed.")
+                    onProgress(InitializationState.Error(errorMsg))
+                    _isReady.value = false
+                    return
+                }
+                onProgress(InitializationState.CopyingDatabase(100))
+
+                // --- LLM and RAG Initialization ---
+                onProgress(InitializationState.InitializingLlm)
+                // The LlmInference.createFromOptions and RAG setup might also be IO-bound
+                // Ensure they are either suspend functions or wrapped appropriately if blocking.
+                // The outer withContext(Dispatchers.IO) in your original code handles this block.
+
+                val taskOptions = LlmInference.LlmInferenceOptions.builder()
+                    .setModelPath(modelFile.absolutePath)
+                    .setMaxNumImages(1)
+                    .setPreferredBackend(LlmInference.Backend.CPU)
+                    .setMaxTokens(1024)
+                    .build()
+
+                // LlmInference.createFromOptions itself might not be a suspend function.
+                // It's good to keep it within Dispatchers.IO.
+                llmInference = LlmInference.createFromOptions(context.applicationContext, taskOptions)
+                Log.i("LlmInferenceManager", "LlmInference initialized successfully.")
+
+                onProgress(InitializationState.InitializingRag)
+                ragPipeline = RagPipeline(context.applicationContext as Application, taskOptions) // Assuming RagPipeline constructor is safe to call like this
+                ragPipeline?.memorizeChunks(context, "knowledge/knowledge-1.txt") // This could be IO intensive
+                Log.i("LlmInferenceManager", "RAG Pipeline initialized successfully.")
+
+                // ---- Success ----
+                _isReady.value = true // Set the readiness flag to true ONCE everything is successful
+                onProgress(InitializationState.Complete)
+                Log.i("LlmInferenceManager", "LlmInferenceManager fully initialized successfully.")
+
+                // Clear listeners if you were using them, though StateFlow is now primary
+                // initializationListeners.forEach { it() }
+                // initializationListeners.clear()
+
+            } catch (e: Exception) {
+                Log.e("LlmInferenceManager", "LLM Initialization failed", e)
+                _isReady.value = false // Critical: ensure _isReady is false on any failure path
+                onProgress(InitializationState.Error(e.message ?: "Unknown error during initialization"))
+                // Re-throwing is good if the caller (e.g., ViewModel) needs to react to the specific exception.
+                // If you re-throw, the _isReady.value = false above is still important.
+                throw e
             }
+            // No 'finally' block needed here specifically for 'isInitializing' if you remove it.
         }
     }
 
-    private suspend fun acquireModelFromAssets(context: Context): File? {
+    private suspend fun acquireModelFromAssets(
+        context: Context,
+        onProgress: (Int) -> Unit
+    ): File? {
         val modelFile = File(context.filesDir, MODEL_FILE_NAME)
         // Activate lines below to delete existing model if it exists and re-copy from assets (use when existing model corrupted)
         if (modelFile.exists()) {
@@ -98,24 +164,89 @@ object LlmInferenceManager {
             }
             if (!deleted && modelFile.exists()) Log.w("LlmInferenceManager", "Could not delete existing model.")
             else if (deleted) Log.d("LlmInferenceManager", "Successfully deleted existing model.")
+            onProgress(0)
         }
         Log.d("LlmInferenceManager", "Copying model from assets to ${modelFile.absolutePath}...")
         return try {
             withContext(Dispatchers.IO) {
-                context.assets.open(MODEL_ASSET_NAME).use { input -> FileOutputStream(modelFile).use { output -> input.copyTo(output) } }
+                context.assets.open(MODEL_ASSET_NAME).use { input ->
+                    val totalBytes = input.available().toLong()
+                    var bytesCopied: Long = 0
+                    FileOutputStream(modelFile).use { output ->
+                        val buffer = ByteArray(8 * 1024)
+                        var read: Int
+                        while (input.read(buffer).also { read = it } != -1) {
+                            output.write(buffer, 0, read)
+                            bytesCopied += read
+                            val progress = ((bytesCopied * 100) / totalBytes).toInt()
+                            // Throttle progress updates if they are too frequent
+                            if (progress % 5 == 0 && progress <= 100) { // Update every 5%
+                                onProgress(progress)
+                            }
+                        }
+                    }
+                }
                 Log.d("LlmInferenceManager", "Model copied from assets successfully.")
+                onProgress(100)
                 modelFile
             }
         } catch (e: IOException) {
             Log.e("LlmInferenceManager", "Failed to copy model from assets: ${e.message}", e)
             if (modelFile.exists()) modelFile.delete()
+            onProgress(0)
             null
         }
     }
 
-    fun isInitialized(): Boolean = llmInference != null
+    private suspend fun acquireDatabaseFromAssets(
+        context: Context,
+        onProgress: (Int) -> Unit
+    ): File? {
+        val databaseFile = File(context.getDatabasePath(DB_FILE_NAME).parent, DB_FILE_NAME)
 
-    suspend fun run(prompt: String): String = withContext(Dispatchers.IO) {
+        if (databaseFile.exists() && databaseFile.length() > 0) {
+            Log.d("LlmInferenceManager", "Database sudah ada di storage internal: ${databaseFile.absolutePath}")
+            onProgress(100)
+            return databaseFile
+        }
+        onProgress(0)
+
+        Log.d("LlmInferenceManager", "Menyalin database dari assets ke ${databaseFile.absolutePath}...")
+        return try {
+            withContext(Dispatchers.IO) {
+                // Pastikan direktori database ada
+                databaseFile.parentFile?.mkdirs()
+                context.assets.open("$DB_ASSET_FOLDER/$DB_ASSET_NAME").use { inputStream ->
+                    val totalBytes = inputStream.available().toLong()
+                    var bytesCopied: Long = 0
+                    FileOutputStream(databaseFile).use { outputStream ->
+                        val buffer = ByteArray(8 * 1024)
+                        var read: Int
+                        while (inputStream.read(buffer).also { read = it } != -1) {
+                            outputStream.write(buffer, 0, read)
+                            bytesCopied += read
+                            val progress = ((bytesCopied * 100) / totalBytes).toInt()
+                            if (progress % 5 == 0 && progress <= 100) {
+                                onProgress(progress)
+                            }
+                        }
+                    }
+                }
+                Log.d("LlmInferenceManager", "Database berhasil disalin dari assets.")
+                onProgress(100)
+                databaseFile
+            }
+        } catch (e: IOException) {
+            Log.e("LlmInferenceManager", "Gagal menyalin database dari assets: ${e.message}", e)
+            databaseFile.delete() // Hapus file jika gagal
+            onProgress(0)
+            null
+        }
+    }
+
+    fun isInitialized(): Boolean = _isReady.value
+
+    private suspend fun run(prompt: String): String = withContext(Dispatchers.IO) {
         if (!isInitialized()) {
             return@withContext "Error: AYRA is not ready yet. Please wait for initialization."
         }
@@ -160,6 +291,115 @@ object LlmInferenceManager {
             Log.e("LlmInferenceManager", "Error generating LLM response: ${e.message}", e)
             "Error: I encountered a problem trying to respond."
         }
+    }
+
+    /**
+     * Generates a conclusion based on the provided user context FROM 'Aktivitas' page.
+     * @param userContext The context provided by the user.
+     */
+    suspend fun getActivityConclusion(userContext: String): String = withContext(Dispatchers.IO) {
+        val final_prompt = "Kamu ahli kesehatan manusia. Berikan kesimpulan atau rekomendasi kesehatan berdasarkan data ini: $userContext. \n Jawab dalam 1 hingga 3 kalimat pendek."
+        return@withContext run(final_prompt)
+    }
+
+    /**
+     * Generates health tips based on the provided user context After User Check In.
+     * Display in Home Page
+     */
+    private val jsonParser = Json {
+        isLenient = true
+        ignoreUnknownKeys = true
+        prettyPrint = false
+    }
+
+    suspend fun getHealthTips(userContext: String? = null): List<Tips> {
+        if (!_isReady.value) {
+            Log.w("LlmInferenceManager", "getHealthTips called but LLM not ready. Attempting to initialize...")
+            // Optionally, you could throw an IllegalStateException or try to initialize here.
+            // For now, let's assume MainActivity triggers initialization.
+            // If called directly without prior MainActivity init, this might need a context.
+            // Consider what context `getHealthTips` would have if called before `initializeIfNeeded`
+            // from MainActivity. It's safer if `initializeIfNeeded` is always called first.
+            // For robustness, you could add:
+            // currentCoroutineContext().job.cancel("LLM not initialized, cannot get tips.")
+            throw IllegalStateException("LLM not initialized. Call initializeIfNeeded first.")
+            // return emptyList()
+        }
+
+        val contextString = userContext?.takeIf { it.isNotBlank() } ?: "tidak ada konteks spesifik"
+
+        val finalPrompt = """
+            Kamu adalah seorang ahli kesehatan manusia. Berikan 5 tips kesehatan singkat untuk satu hari berdasarkan konteks pengguna berikut: "$contextString".
+
+            Format jawabanmu HARUS berupa array JSON valid yang berisi objek-objek tips.
+            Setiap objek tips HARUS memiliki dua properti: "title" (String) dan "content" (String).
+            Contoh format array JSON yang diinginkan:
+            [
+              {"title": "Contoh Judul 1", "content": "Contoh isi tips pertama."},
+              {"title": "Contoh Judul 2", "content": "Contoh isi tips kedua."}
+            ]
+            Pastikan tidak ada teks tambahan sebelum atau sesudah array JSON. Hanya array JSON saja.
+        """.trimIndent()
+
+        return withContext(Dispatchers.IO) {
+            try {
+                val jsonResponseString = run(finalPrompt) // This is your existing function that calls the LLM
+                Log.d("LlmInferenceManager", "Raw JSON response from LLM: $jsonResponseString")
+
+                if (jsonResponseString.isBlank()) {
+                    Log.w("LlmInferenceManager", "Received blank response from LLM for health tips.")
+                    return@withContext emptyList()
+                }
+
+                // Attempt to parse the JSON string into List<Tips>
+                // It's good to clean the string first if the LLM might add markdown or other noise
+                val cleanedJsonResponse = cleanLlmJsonResponse(jsonResponseString)
+                Log.d("LlmInferenceManager", "Cleaned JSON response: $cleanedJsonResponse")
+
+
+                if (cleanedJsonResponse.startsWith("[") && cleanedJsonResponse.endsWith("]")) {
+                    val tipsList: List<Tips> = jsonParser.decodeFromString(cleanedJsonResponse)
+                    Log.i("LlmInferenceManager", "Successfully parsed ${tipsList.size} health tips.")
+                    return@withContext tipsList
+                } else {
+                    Log.e("LlmInferenceManager", "LLM response is not a valid JSON array: $cleanedJsonResponse")
+                    // You could try to parse a single object if the LLM messed up the array
+                    // or return emptyList / throw specific error
+                    return@withContext emptyList()
+                }
+
+            } catch (e: SerializationException) {
+                Log.e("LlmInferenceManager", "Failed to parse JSON response for health tips: ${e.message}", e)
+                // Optionally, you could try to extract content even if parsing fails,
+                // or just return an empty list or a default "error" tip.
+                return@withContext listOf(Tips("Error", "Gagal memproses tips kesehatan dari AI."))
+            } catch (e: Exception) {
+                Log.e("LlmInferenceManager", "Error running LLM for health tips: ${e.message}", e)
+                return@withContext emptyList()
+            }
+        }
+    }
+
+    private fun cleanLlmJsonResponse(rawResponse: String): String {
+        // Try to find the start of the JSON array
+        val startIndex = rawResponse.indexOf('[')
+        // Try to find the end of the JSON array
+        val endIndex = rawResponse.lastIndexOf(']')
+
+        if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
+            return rawResponse.substring(startIndex, endIndex + 1).trim()
+        }
+
+        // Fallback for cases where LLM might just output JSON without markdown
+        // and might have surrounding quotes if it's a stringified JSON within a larger string.
+        val trimmed = rawResponse.trim()
+        if (trimmed.startsWith("\"[") && trimmed.endsWith("]\"")) {
+            return trimmed.substring(1, trimmed.length - 1).replace("\\\"", "\"")
+        }
+        if (trimmed.startsWith("'[") && trimmed.endsWith("]'")) {
+            return trimmed.substring(1, trimmed.length - 1).replace("\\\'", "\'")
+        }
+        return trimmed // Return trimmed original if no clear array boundaries found
     }
 
     /**

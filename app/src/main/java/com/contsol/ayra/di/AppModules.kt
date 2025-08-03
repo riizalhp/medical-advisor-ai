@@ -1,5 +1,6 @@
 package com.contsol.ayra.di
 
+import com.contsol.ayra.presentation.main.MainViewModel
 import android.content.SharedPreferences
 import com.contsol.ayra.data.datasource.ActivityDataSource
 import com.contsol.ayra.data.datasource.ActivityDataSourceImpl
@@ -11,10 +12,16 @@ import com.contsol.ayra.presentation.activity.ActivityViewModel
 import com.contsol.ayra.utils.SharedPreferenceUtils
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 object AppModules {
+    private val appModule =
+        module {
+            viewModel { MainViewModel() }
+        }
+
     private val networkModule =
         module {
         }
@@ -46,6 +53,7 @@ object AppModules {
 
     val modules =
         listOf<Module>(
+            appModule,
             networkModule,
             localModule,
             datasource,
