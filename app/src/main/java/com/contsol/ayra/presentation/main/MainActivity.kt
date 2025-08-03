@@ -7,7 +7,6 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
@@ -18,6 +17,8 @@ import androidx.navigation.ui.setupWithNavController
 import com.contsol.ayra.R
 import com.contsol.ayra.databinding.ActivityMainBinding
 import com.contsol.ayra.data.state.InitializationState
+import com.contsol.ayra.data.ai.LlmInferenceManager
+import com.contsol.ayra.databinding.ActivityMainBinding
 import com.contsol.ayra.presentation.chat.ChatActivity
 import kotlinx.coroutines.launch
 
@@ -30,7 +31,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        installSplashScreen()
+
         setContentView(binding.root)
 
         setupBottomNav()

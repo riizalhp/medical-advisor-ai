@@ -3,19 +3,15 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-<!--    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />-->
-<!--    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />-->
-<!--    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />-->
-<!--    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />-->
-    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO" /> <!-- <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" /> -->
+    <!-- <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" /> -->
+    <!-- <uses-permission android:name="android.permission.POST_NOTIFICATIONS" /> -->
+    <!-- <uses-permission android:name="android.permission.USE_EXACT_ALARM" /> -->
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-<!--    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />-->
-<!--    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />-->
-
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" /> <!-- <uses-permission android:name="android.permission.BLUETOOTH_SCAN" /> -->
+    <!-- <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" /> -->
     <uses-feature android:name="android.hardware.camera.any" />
-<!--    <uses-feature android:name="android.hardware.microphone" />-->
 
     <application
         android:name=".App"
@@ -28,7 +24,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AYRA">
         <activity
-            android:name=".presentation.main.MainActivity"
+            android:name=".presentation.onboarding.OnBoardingActivity"
+            android:exported="false" />
+        <activity
+            android:name=".presentation.launcher.LauncherActivity"
             android:exported="true"
             android:theme="@style/Theme.AYRA.Starting">
             <intent-filter>
@@ -37,6 +36,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".presentation.main.MainActivity"
+            android:exported="false" />
         <activity
             android:name=".presentation.chat.ChatActivity"
             android:exported="false"

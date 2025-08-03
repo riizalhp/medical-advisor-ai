@@ -30,6 +30,8 @@ tasksGenaiVersion = "0.10.25"
 tasksVision = "latest.release"
 viewpager2 = "1.1.0"
 coreSplashScreen = "1.0.1"
+viewpager2 = "1.0.0"
+appintro = "6.3.1"
 
 [libraries]
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraCore" }
@@ -84,6 +86,11 @@ tasks-vision = { module = "com.google.mediapipe:tasks-vision", version.ref = "ta
 #splash
 core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashScreen" }
 
+#ViewPager2
+viewpager2 = { group = "androidx.viewpager2", name = "viewpager2", version.ref = "viewpager2" }
+
+#AppIntro
+appintro = { group = "com.github.appintro", name = "appintro", version.ref = "appintro" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

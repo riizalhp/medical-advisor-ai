@@ -80,4 +80,6 @@ dependencies {
     implementation(libs.androidx.camera.view)
     implementation(libs.core.splashscreen)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.viewpager2)
+    implementation(libs.appintro)
 }
