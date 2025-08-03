@@ -51,4 +51,9 @@
     <string name="text_kesimpulan">Kesimpulan\nAnda Sehat Hari ini</string>
     <string name="minum_progress">%1$d/8</string>
     <string name="makan_progress">%1$d/3</string>
+    <string-array name="filter_options">
+        <item>Minggu ini</item>
+        <item>Bulan ini</item>
+        <item>Tahun ini</item>
+    </string-array>
 </resources>
