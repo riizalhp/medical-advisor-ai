@@ -78,5 +78,6 @@ dependencies {
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
+    implementation(libs.core.splashscreen)
     implementation(libs.kotlinx.serialization.json)
 }

@@ -29,6 +29,7 @@ room = "2.7.2"
 tasksGenaiVersion = "0.10.25"
 tasksVision = "latest.release"
 viewpager2 = "1.1.0"
+coreSplashScreen = "1.0.1"
 
 [libraries]
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraCore" }
@@ -79,6 +80,9 @@ tasks-genai = { module = "com.google.mediapipe:tasks-genai", version.ref = "task
 tasks-genai-v01025 = { module = "com.google.mediapipe:tasks-genai", version.ref = "tasksGenaiVersion" }
 #noinspection Aligned16KB
 tasks-vision = { module = "com.google.mediapipe:tasks-vision", version.ref = "tasksVision" }
+
+#splash
+core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashScreen" }
 
 
 [plugins]
