@@ -23,8 +23,10 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
+import java.security.MessageDigest
 
 object LlmInferenceManager {
     private var llmInference: LlmInference? = null
@@ -36,6 +38,7 @@ object LlmInferenceManager {
 
     private const val MODEL_ASSET_NAME = "gemma-3n-E2B-it-int4.task"
     private const val MODEL_FILE_NAME = "gemma-3n-E2B-it-int4.task" // Name for the file in internal storage
+    private const val EXPECTED_MODEL_CHECKSUM_MD5 = "902207CA56F3D125F3E4807C7D4596CD"
 
     private const val DB_ASSET_FOLDER = "database" // Folder di dalam assets
     private const val DB_ASSET_NAME = "knowledge_base.db" // Nama file DB di assets
@@ -154,16 +157,43 @@ object LlmInferenceManager {
         onProgress: (Int) -> Unit
     ): File? {
         val modelFile = File(context.filesDir, MODEL_FILE_NAME)
-        // Activate lines below to delete existing model if it exists and re-copy from assets (use when existing model corrupted)
-        if (modelFile.exists()) {
-            Log.d("LlmInferenceManager", "Existing model found at ${modelFile.absolutePath}. Deleting it to force re-copy from assets.")
-            val deleted = withContext(Dispatchers.IO) {
-                try { modelFile.delete() } catch (e: Exception) {
-                    Log.e("LlmInferenceManager", "Failed to delete existing model: ${e.message}", e); false
+        if (modelFile.exists() && modelFile.length() > 0) {
+            Log.d("LlmInferenceManager", "Model already exists at ${modelFile.absolutePath}. Skipping copy.")
+            val currentChecksum = calculateMD5(modelFile)
+            if (EXPECTED_MODEL_CHECKSUM_MD5.equals(currentChecksum, ignoreCase = true)) {
+                Log.d("LlmInferenceManager", "Model integrity verified. Skipping copy.")
+                onProgress(100)
+                return modelFile
+            } else {
+                Log.w(
+                    "LlmInferenceManager",
+                    "Model checksum mismatch. Expected: $EXPECTED_MODEL_CHECKSUM_MD5, Found: $currentChecksum. Deleting and re-copying."
+                )
+                // Attempt to delete the corrupted file
+                withContext(Dispatchers.IO) {
+                    try {
+                        if (modelFile.exists()) modelFile.delete()
+                    } catch (e: Exception) {
+                        Log.e("LlmInferenceManager", "Failed to delete corrupted model: ${e.message}", e)
+                        // If deletion fails, we might not be able to proceed
+                        onProgress(0) // Reset progress
+                        // Potentially return null or throw an error to indicate a critical issue
+                        return@withContext null
+                    }
+                }
+                onProgress(0) // Reset progress before re-copying
+            }
+        } else if (modelFile.exists() && modelFile.length() == 0L) {
+            Log.w("LlmInferenceManager", "Model file exists but is empty. Deleting and re-copying.")
+            withContext(Dispatchers.IO) {
+                try {
+                    modelFile.delete()
+                } catch (e: Exception) {
+                    Log.e("LlmInferenceManager", "Failed to delete empty model: ${e.message}", e)
+                    onProgress(0)
+                    return@withContext null
                 }
             }
-            if (!deleted && modelFile.exists()) Log.w("LlmInferenceManager", "Could not delete existing model.")
-            else if (deleted) Log.d("LlmInferenceManager", "Successfully deleted existing model.")
             onProgress(0)
         }
         Log.d("LlmInferenceManager", "Copying model from assets to ${modelFile.absolutePath}...")
@@ -186,14 +216,47 @@ object LlmInferenceManager {
                         }
                     }
                 }
-                Log.d("LlmInferenceManager", "Model copied from assets successfully.")
-                onProgress(100)
-                modelFile
+                val copiedChecksum = calculateMD5(modelFile)
+                if (EXPECTED_MODEL_CHECKSUM_MD5.equals(copiedChecksum, ignoreCase = true)) {
+                    Log.d("LlmInferenceManager", "Model copied from assets successfully and verified.")
+                    onProgress(100)
+                    modelFile
+                } else {
+                    Log.e(
+                        "LlmInferenceManager",
+                        "Copied model checksum mismatch after copy! Expected: $EXPECTED_MODEL_CHECKSUM_MD5, Found: $copiedChecksum. Deleting."
+                    )
+                    if (modelFile.exists()) modelFile.delete()
+                    onProgress(0)
+                    null // Indicate failure
+                }
             }
         } catch (e: IOException) {
             Log.e("LlmInferenceManager", "Failed to copy model from assets: ${e.message}", e)
             if (modelFile.exists()) modelFile.delete()
             onProgress(0)
+            null
+        }
+    }
+
+    private fun calculateMD5(file: File): String? {
+        return try {
+            val digest = MessageDigest.getInstance("MD5")
+            FileInputStream(file).use { fis ->
+                val byteArray = ByteArray(1024)
+                var bytesCount: Int
+                while (fis.read(byteArray).also { bytesCount = it } != -1) {
+                    digest.update(byteArray, 0, bytesCount)
+                }
+            }
+            val bytes = digest.digest()
+            val sb = StringBuilder()
+            for (byte in bytes) {
+                sb.append(String.format("%02x", byte))
+            }
+            sb.toString()
+        } catch (e: Exception) {
+            Log.e("LlmInferenceManager", "Failed to calculate MD5 checksum for ${file.name}", e)
             null
         }
     }
@@ -205,13 +268,13 @@ object LlmInferenceManager {
         val databaseFile = File(context.getDatabasePath(DB_FILE_NAME).parent, DB_FILE_NAME)
 
         if (databaseFile.exists() && databaseFile.length() > 0) {
-            Log.d("LlmInferenceManager", "Database sudah ada di storage internal: ${databaseFile.absolutePath}")
+            Log.d("LlmInferenceManager", "Database already exists at ${databaseFile.absolutePath}. Skipping copy.")
             onProgress(100)
             return databaseFile
         }
         onProgress(0)
 
-        Log.d("LlmInferenceManager", "Menyalin database dari assets ke ${databaseFile.absolutePath}...")
+        Log.d("LlmInferenceManager", "Copying database from assets to ${databaseFile.absolutePath}...")
         return try {
             withContext(Dispatchers.IO) {
                 // Pastikan direktori database ada
