@@ -1,5 +1,6 @@
 [versions]
 agp = "8.11.0"
+androidxCoreKtx = "1.5.0"
 cameraCore = "1.4.2"
 kotlin = "2.2.0"
 coreKtx = "1.16.0"
@@ -7,6 +8,10 @@ junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 appcompat = "1.7.1"
+kotlinxCoroutinesCore = "1.10.2"
+kotlinxCoroutinesGuava = "<latest_version>"
+kotlinxSerializationJson = "1.9.0"
+localagentsRag = "0.2.0"
 material = "1.12.0"
 activity = "1.10.1"
 constraintlayout = "2.2.1"
@@ -14,13 +19,18 @@ ksp = "2.2.0-2.0.2"
 coil = "2.7.0"
 lifecycle = "2.9.1"
 fragment-ktx = "1.8.8"
+mpandroidchart = "3.1.0"
 navigationFragmentKtx = "2.9.1"
 navigationUiKtx = "2.9.1"
 tasksGenai = "0.10.24"
 koin = "4.0.3"
 coreKtxVersion = "1.6.1"
 room = "2.7.2"
+tasksGenaiVersion = "0.10.25"
 tasksVision = "latest.release"
+viewpager2 = "1.1.0"
+coreSplashScreen = "1.0.1"
+appintro = "6.3.1"
 
 [libraries]
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraCore" }
@@ -28,15 +38,21 @@ androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "cameraCore" }
 androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "cameraCore" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-core-ktx-v150 = { module = "androidx.test:core-ktx", version.ref = "androidxCoreKtx" }
 androidx-recyclerview = { module = "androidx.recyclerview:recyclerview" }
+androidx-viewpager2 = { module = "androidx.viewpager2:viewpager2", version.ref = "viewpager2" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
+kotlinx-coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-guava", version.ref = "kotlinxCoroutinesGuava" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+localagents-rag = { module = "com.google.ai.edge.localagents:localagents-rag", version.ref = "localagentsRag" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
-
+mpandroidchart = { module = "com.github.PhilJay:MPAndroidChart", version.ref = "mpandroidchart" }
 # coil image loader
 coil = { group = "io.coil-kt", name = "coil", version.ref = "coil" }
 
@@ -56,14 +72,20 @@ androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
-core-ktx = { group = "androidx.test", name = "core-ktx", version.ref = "coreKtxVersion" }
 #koin
 koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
 
 #tasks genai
 tasks-genai = { module = "com.google.mediapipe:tasks-genai", version.ref = "tasksGenai" }
+tasks-genai-v01025 = { module = "com.google.mediapipe:tasks-genai", version.ref = "tasksGenaiVersion" }
+#noinspection Aligned16KB
 tasks-vision = { module = "com.google.mediapipe:tasks-vision", version.ref = "tasksVision" }
 
+#splash
+core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashScreen" }
+
+#AppIntro
+appintro = { group = "com.github.appintro", name = "appintro", version.ref = "appintro" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

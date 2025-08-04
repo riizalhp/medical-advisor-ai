@@ -1,60 +1,81 @@
 package com.contsol.ayra.presentation.history
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.contsol.ayra.R
+import androidx.fragment.app.Fragment
+import com.contsol.ayra.databinding.FragmentHistoryBinding
+import com.github.mikephil.charting.charts.BarChart
+import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.data.BarData
+import com.github.mikephil.charting.data.BarDataSet
+import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
+import com.github.mikephil.charting.utils.ColorTemplate
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [HistoryFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class HistoryFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private var _binding: FragmentHistoryBinding? = null
+    private val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_history, container, false)
+    ): View {
+        _binding = FragmentHistoryBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment HistoryFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            HistoryFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Isi chart dengan data dummy
+        setupBarChart(binding.chartSleep, "Jam Tidur", floatArrayOf(6f, 7f, 8f, 5f, 6f, 7f, 8f))
+        setupBarChart(binding.chartEat, "Jumlah Makan", floatArrayOf(3f, 3f, 4f, 3f, 4f, 4f, 3f))
+        setupBarChart(binding.chartDrink, "Jumlah Minum (L)", floatArrayOf(1.5f, 2f, 2f, 1f, 2f, 2.5f, 2f))
+        setupBarChart(binding.chartWalk, "Jarak Jalan (KM)", floatArrayOf(2f, 3f, 4f, 3f, 5f, 6f, 4f))
+    }
+
+    private fun setupBarChart(barChart: BarChart, label: String, data: FloatArray) {
+        val entries = data.mapIndexed { index, value ->
+            BarEntry(index.toFloat(), value)
+        }
+
+        val dataSet = BarDataSet(entries, label).apply {
+            colors = ColorTemplate.MATERIAL_COLORS.toList()
+            valueTextSize = 12f
+        }
+
+        val barData = BarData(dataSet).apply {
+            barWidth = 0.9f
+        }
+
+        barChart.apply {
+            this.data = barData
+            barData.notifyDataChanged()
+            notifyDataSetChanged()
+            setFitBars(true)
+            description.isEnabled = false
+            axisRight.isEnabled = false
+            axisLeft.axisMinimum = 0f
+
+            xAxis.apply {
+                position = XAxis.XAxisPosition.BOTTOM
+                granularity = 1f
+                setDrawGridLines(false)
+                valueFormatter = IndexAxisValueFormatter(
+                    listOf("Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min")
+                )
             }
+            legend.isEnabled = false
+            animateY(1000)
+            invalidate()
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

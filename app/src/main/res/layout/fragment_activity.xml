@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F0F4F3">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/secondary_default">
+
+            <TextView
+                android:id="@+id/toolbarTitle"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="@string/text_header_activity"
+                android:textColor="@android:color/white"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </androidx.appcompat.widget.Toolbar>
+    </com.google.android.material.appbar.AppBarLayout>
+
+
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/appBarLayout">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardStatistik"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="@android:color/white"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:text="@string/text_statistik"
+                        android:textColor="@android:color/black"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/statistikJalan"
+                        style="@style/StatisticItem"
+                        android:text="@string/text_strip" />
+
+                    <TextView
+                        android:id="@+id/statistikMinum"
+                        style="@style/StatisticItem"
+                        android:text="@string/text_strip" />
+
+                    <TextView
+                        android:id="@+id/statistikTidur"
+                        style="@style/StatisticItem"
+                        android:text="@string/text_strip" />
+
+                    <TextView
+                        android:id="@+id/statistikMakan"
+                        style="@style/StatisticItem"
+                        android:text="@string/text_strip" />
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <TextView
+                android:id="@+id/tvMinumTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="@string/text_minum_title"
+                android:textColor="@android:color/black"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/cardStatistik" />
+
+            <FrameLayout
+                android:id="@+id/progressContainer"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginHorizontal="32dp"
+                app:layout_constraintTop_toBottomOf="@id/tvMinumTitle"
+                app:layout_constraintStart_toStartOf="parent">
+
+                <!-- Circular Progress Indicator Modern -->
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:id="@+id/circularProgressMinum"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:indeterminate="false"
+                    android:max="8"
+                    android:progress="3"
+                    app:trackThickness="8dp"
+                    app:indicatorSize="120dp"
+                    app:indicatorInset="0dp"
+                    app:indicatorColor="@color/main_default"
+                    app:trackColor="@color/secondary_default"
+                    app:trackCornerRadius="4dp" />
+
+                <!-- Teks di tengah lingkaran -->
+                <TextView
+                    android:id="@+id/tvProgressMinum"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="@string/text_counter"
+                    android:textColor="@android:color/black"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+            </FrameLayout>
+
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/cl_add_minum"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="32dp"
+                app:layout_constraintTop_toTopOf="@id/progressContainer"
+                app:layout_constraintBottom_toBottomOf="@id/progressContainer"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <ImageView
+                    android:id="@+id/btnMinumMinus"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginEnd="8dp"
+                    android:src="@drawable/ic_minus"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/tvMinumCount" />
+
+                <TextView
+                    android:id="@+id/tvMinumCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/text_counter_minum"
+                    android:textColor="@android:color/black"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    app:layout_constraintTop_toTopOf="@id/btnMinumMinus"
+                    app:layout_constraintBottom_toBottomOf="@id/btnMinumMinus"
+                    app:layout_constraintStart_toEndOf="@id/btnMinumMinus"
+                    app:layout_constraintEnd_toStartOf="@id/btnMinumPlus" />
+
+                <ImageView
+                    android:id="@+id/btnMinumPlus"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="8dp"
+                    android:src="@drawable/ic_plus"
+                    app:layout_constraintTop_toTopOf="@id/btnMinumMinus"
+                    app:layout_constraintBottom_toBottomOf="@id/btnMinumMinus"
+                    app:layout_constraintStart_toEndOf="@id/tvMinumCount"
+                    app:layout_constraintEnd_toEndOf="parent" />
+
+                <Button
+                    android:id="@+id/btnSimpanMinum"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/text_simpan"
+                    android:backgroundTint="@color/secondary_default"
+                    android:layout_marginTop="12dp"
+                    app:cornerRadius="20dp"
+                    app:layout_constraintTop_toBottomOf="@id/btnMinumMinus"
+                    app:layout_constraintStart_toStartOf="@id/btnMinumMinus"
+                    app:layout_constraintEnd_toEndOf="@id/btnMinumPlus"
+                    app:layout_constraintBottom_toBottomOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <TextView
+                android:id="@+id/tvJalanTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="@string/text_jalan_title"
+                android:textColor="@android:color/black"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/progressContainer" />
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardJalan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="#E6F5F3"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="8dp"
+                android:layout_marginTop="16dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvJalanTitle">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/main_50"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:id="@+id/ivJalanIcon"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_marginVertical="24dp"
+                        android:src="@drawable/ic_walk"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <TextView
+                        android:id="@+id/tvJalanProgress"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="28dp"
+                        android:text="@string/text_total_jalan"
+                        android:textColor="@android:color/black"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        app:layout_constraintStart_toEndOf="@id/ivJalanIcon"
+                        app:layout_constraintTop_toTopOf="@id/ivJalanIcon" />
+
+                    <TextView
+                        android:id="@+id/tvJalanTarget"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:text="@string/text_kurang_jalan"
+                        android:textSize="12sp"
+                        android:maxLines="2"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="@id/tvJalanProgress"
+                        app:layout_constraintTop_toBottomOf="@id/tvJalanProgress" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <TextView
+                android:id="@+id/tvMakanTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="@string/text_makan_title"
+                android:textColor="@android:color/black"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/cardJalan" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/cl_add_makan"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="32dp"
+                app:layout_constraintTop_toBottomOf="@id/tvMakanTitle"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintBottom_toBottomOf="@id/progressContainerMakan">
+
+                <ImageView
+                    android:id="@+id/btnMakanMinus"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginTop="16dp"
+                    android:src="@drawable/ic_minus"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/tvMakanCount" />
+
+                <TextView
+                    android:id="@+id/tvMakanCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/text_makan_counter"
+                    android:textColor="@android:color/black"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    app:layout_constraintTop_toTopOf="@id/btnMakanMinus"
+                    app:layout_constraintBottom_toBottomOf="@id/btnMakanMinus"
+                    app:layout_constraintStart_toEndOf="@id/btnMakanMinus"
+                    app:layout_constraintEnd_toStartOf="@id/btnMakanPlus" />
+
+                <ImageView
+                    android:id="@+id/btnMakanPlus"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="8dp"
+                    android:src="@drawable/ic_plus"
+                    app:layout_constraintTop_toTopOf="@id/btnMakanMinus"
+                    app:layout_constraintBottom_toBottomOf="@id/btnMakanMinus"
+                    app:layout_constraintStart_toEndOf="@id/tvMakanCount"
+                    app:layout_constraintEnd_toEndOf="parent" />
+
+                <!-- Tombol Simpan -->
+                <Button
+                    android:id="@+id/btnSimpanMakan"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/text_simpan"
+                    android:backgroundTint="@color/secondary_default"
+                    app:cornerRadius="20dp"
+                    app:layout_constraintTop_toBottomOf="@id/btnMakanMinus"
+                    app:layout_constraintStart_toStartOf="@id/btnMakanMinus"
+                    app:layout_constraintEnd_toEndOf="@id/btnMakanPlus"
+                    app:layout_constraintBottom_toBottomOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <FrameLayout
+                android:id="@+id/progressContainerMakan"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginHorizontal="32dp"
+                app:layout_constraintTop_toBottomOf="@id/tvMakanTitle"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:id="@+id/circularProgressMakan"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:indeterminate="false"
+                    android:max="3"
+                    android:progress="1"
+                    app:trackThickness="8dp"
+                    app:indicatorSize="120dp"
+                    app:indicatorInset="0dp"
+                    app:indicatorColor="@color/main_default"
+                    app:trackColor="@color/secondary_default"
+                    app:trackCornerRadius="4dp" />
+
+                <TextView
+                    android:id="@+id/tvProgressMakan"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="@string/text_total_makan"
+                    android:textColor="@android:color/black"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+            </FrameLayout>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardKesimpulan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                app:cardBackgroundColor="@color/main_50"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/progressContainerMakan">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:layout_width="72dp"
+                        android:layout_height="72dp"
+                        android:src="@drawable/ic_checkmark_circle" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:text="@string/text_kesimpulan"
+                        android:textColor="@android:color/black"
+                        android:textSize="16sp" />
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

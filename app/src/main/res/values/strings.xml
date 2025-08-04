@@ -1,17 +1,17 @@
 <resources>
     <string name="app_name">AYRA</string>
     <string name="text_menu_home">Home</string>
-    <string name="text_menu_insight">Insight</string>
+    <string name="text_menu_activity">Activity</string>
     <string name="text_menu_history">History</string>
     <string name="text_menu_profile">Profile</string>
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="text_on_board_title">Your Personal Wellness \nCompanion.</string>
     <string name="text_home_greeting">Selamat Pagi, User</string>
     <string name="text_home_jangan_lupa">Jangan lupa minum air putih</string>
     <string name="text_home_check_in">CHECK IN</string>
     <string name="text_home_tittle_saran">Saran AI Hari ini</string>
     <string name="text_home_isi_saran">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum.</string>
-    <string name="text_home_btn_konsultasi">MULAI KONSULTASI!</string>
+    <string name="text_home_btn_konsultasi">MULAI KONSULTASI</string>
     <string name="text_home_tittle_tips">Tips Sehat Hari ini</string>
     <string name="text_home_tittle_summary">Ringkasan Aktivitas</string>
     <string name="text_home_see_all">LIHAT SELENGKAPNYA</string>
@@ -35,6 +35,54 @@
     <string name="attachment_preview">Attachment Preview</string>
     <string name="remove_attachment">Remove attachment</string>
     <string name="button_capture">Button Capture</string>
+    <string name="text_statistik">Statistik</string>
+    <string name="text_strip">-</string>
+    <string name="text_minum_title">Sudahkah anda minum air putih?</string>
+    <string name="text_simpan">SIMPAN</string>
+    <string name="text_jalan_title">Ayo Jalan</string>
+    <string name="text_header_activity">Activity</string>
+    <string name="text_counter">3/8</string>
+    <string name="text_counter_minum">1</string>
+    <string name="text_total_jalan">Anda sudah berjalan 0 m</string>
+    <string name="text_kurang_jalan">Jalan 300 m lagi untuk mencapai jarak optimal harian</string>
+    <string name="text_makan_title">Jangan lupa makan makanan bergizi</string>
+    <string name="text_makan_counter">1</string>
+    <string name="text_total_makan">1/3</string>
+    <string name="text_kesimpulan">Kesimpulan\nAnda Sehat Hari ini</string>
+    <string name="minum_progress">%1$d/8</string>
+    <string name="makan_progress">%1$d/3</string>
+    <string name="text_lanjut">Lanjutkan</string>
+    <string name="text_privasi_keamanan"><![CDATA[Privasi & Keamanan]]></string>
+    <string name="text_isi_fitur_1">Semua data, termasuk foto dan chat, tersimpan aman hanya di ponsel Anda. Tanpa perlu akun.</string>
+    <string name="text_kecanggihan_analisis"><![CDATA[Kecanggihan & Analisis]]></string>
+    <string name="text_isi_fitur_2">Dapatkan wawasan dari foto untuk kulit, nutrisi, dan kondisi fisik lainnya.</string>
+    <string name="text_kesehatan_holistik">Kesehatan Holistik</string>
+    <string name="text_isi_fitur_3">Dari kebugaran, kesehatan mental, hingga nutrisi, semua ada di sini.</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="text_kebijakan_privasi">Kebijakan Privasi</string>
+    <string name="text_isi_kebijakan_privasi">Isi Kebijakan Privasi</string>
+    <string name="text_setuju_dengan_kebijakan_privasi">Setuju dengan kebijakan privasi</string>
+    <string name="btn_mulai_perjalanan_sehatmu">Mulai Perjalanan Sehatmu</string>
+    <string name="title_masukkan_data_diri_anda">Masukkan data diri anda</string>
+    <string name="hint_nama">Nama</string>
+    <string name="text_masukkan_nama_anda">Masukkan nama Anda</string>
+    <string name="hint_umur">Umur</string>
+    <string name="text_masukkan_umur_anda">Masukkan umur Anda</string>
+    <string name="hint_jenis_kelamin">Jenis Kelamin</string>
+    <string name="text_what_is_your_weight">Masukkan berat badan Anda</string>
+    <string name="text_what_is_your_height">Masukkan tinggi badan Anda</string>
+    <string name="hint_golongan_darah">Golongan Darah</string>
+    <string name="btn_submit">Submit</string>
+    <string name="text_slider_berat_badan">Slider berat badan</string>
+    <string name="text_slider_tinggi_badan">Slider tinggi badan</string>
+    <string name="hint_tinggi">Tinggi Badan</string>
+    <string name="hint_berat">Berat Badan</string>
+    <string-array name="filter_options">
+        <item>Minggu ini</item>
+        <item>Bulan ini</item>
+        <item>Tahun ini</item>
+    </string-array>
     <string name="check_in">Check In</string>
     <string name="gejala_apa_yang_anda_rasakan">Gejala apa yang anda rasakan?</string>
     <string name="gejala">Gejala</string>

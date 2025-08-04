@@ -29,5 +29,11 @@
         <item name="cornerSizeBottomRight">12dp</item>
     </style>
 
+    <style name="Theme.AYRA.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_logo</item>
+        <item name="windowSplashScreenBackground">@color/white</item>
+        <item name="postSplashScreenTheme">@style/Theme.AYRA</item>
+    </style>
+
     <style name="Theme.AYRA" parent="Base.Theme.AYRA" />
 </resources>

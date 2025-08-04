@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
+    id("kotlinx-serialization")
 }
 
 android {
@@ -49,6 +50,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.recyclerview)
+    implementation(libs.androidx.viewpager2)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.core.ktx)
     testImplementation(libs.junit)
@@ -63,16 +65,19 @@ dependencies {
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.tasks.genai)
     ksp(libs.room.compiler)
-
     implementation("com.google.ai.edge.localagents:localagents-rag:0.1.0")
     implementation("com.google.mediapipe:tasks-genai:0.10.24")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:<latest_version>")
     testImplementation("androidx.test:core-ktx:1.5.0")
+    implementation(libs.mpandroidchart)
     implementation(libs.tasks.vision)
     implementation(libs.koin.android)
     implementation(libs.androidx.camera.core)
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
+    implementation(libs.core.splashscreen)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.appintro)
 }
