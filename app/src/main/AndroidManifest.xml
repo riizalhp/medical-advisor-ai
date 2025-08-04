@@ -49,6 +49,16 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".presentation.main.MainActivity" />
         </activity>
+        <activity
+            android:name=".presentation.checkin.CheckInActivity"
+            android:exported="false"
+            android:label="Check In"
+            android:parentActivityName=".presentation.main.MainActivity"
+            android:windowSoftInputMode="adjustResize">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".presentation.main.MainActivity" />
+        </activity>
     </application>
 
 </manifest>

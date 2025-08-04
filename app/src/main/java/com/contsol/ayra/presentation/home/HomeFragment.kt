@@ -1,5 +1,6 @@
 package com.contsol.ayra.presentation.home
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -11,6 +12,8 @@ import androidx.lifecycle.lifecycleScope
 import com.contsol.ayra.data.ai.LlmInferenceManager
 import com.contsol.ayra.data.source.local.database.model.Tips
 import com.contsol.ayra.databinding.FragmentHomeBinding
+import com.contsol.ayra.presentation.chat.ChatActivity
+import com.contsol.ayra.presentation.checkin.CheckInActivity
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -47,6 +50,13 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private fun setClickListener() {
+        binding.btnCheckIn.setOnClickListener {
+            val intent = Intent(requireContext(), CheckInActivity::class.java)
+            startActivity(intent)
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -71,6 +81,7 @@ class HomeFragment : Fragment() {
                 tipsAdapter.updateTips(getFallbackTips())
             }
         }
+        setClickListener()
     }
 
     private suspend fun loadTips() {
