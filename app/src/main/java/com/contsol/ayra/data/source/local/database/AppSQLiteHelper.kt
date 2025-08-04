@@ -14,6 +14,7 @@ class AppSQLiteHelper(context: Context) :
         db.execSQL(CREATE_PHOTO_LOG_TABLE)
         // db.execSQL(CREATE_MENSTRUAL_CYCLE_TABLE)
         db.execSQL(CREATE_AI_SUGGESTION_TABLE)
+        db.execSQL(CREATE_HEALTH_TIPS_TABLE)
         db.execSQL(CREATE_KNOWLEDGE_BASE_TABLE)
     }
 
@@ -25,6 +26,7 @@ class AppSQLiteHelper(context: Context) :
         db.execSQL("DROP TABLE IF EXISTS PhotoLog")
         // db.execSQL("DROP TABLE IF EXISTS MenstrualCycle")
         db.execSQL("DROP TABLE IF EXISTS AISuggestion")
+        db.execSQL("DROP TABLE IF EXISTS HealthTips")
         db.execSQL("DROP TABLE IF EXISTS KnowledgeBase")
         onCreate(db)
     }
@@ -87,6 +89,15 @@ class AppSQLiteHelper(context: Context) :
                 date INTEGER NOT NULL,
                 category TEXT NOT NULL,
                 suggestion_text TEXT NOT NULL,
+                expired_time INTEGER NOT NULL
+            );
+        """
+
+        private const val CREATE_HEALTH_TIPS_TABLE = """
+            CREATE TABLE HealthTips (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                content TEXT NOT NULL,
                 expired_time INTEGER NOT NULL
             );
         """

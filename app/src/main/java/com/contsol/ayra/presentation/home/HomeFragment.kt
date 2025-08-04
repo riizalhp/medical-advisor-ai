@@ -10,12 +10,15 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.contsol.ayra.data.ai.LlmInferenceManager
+import com.contsol.ayra.data.source.local.database.dao.HealthTipsDao
 import com.contsol.ayra.data.source.local.database.model.Tips
+import com.contsol.ayra.data.source.local.preference.TipsRefreshPreferences
 import com.contsol.ayra.databinding.FragmentHomeBinding
-import com.contsol.ayra.presentation.chat.ChatActivity
 import com.contsol.ayra.presentation.checkin.CheckInActivity
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -35,6 +38,8 @@ class HomeFragment : Fragment() {
     private lateinit var tipsAdapter: TipsCarouselAdapter
 
     private val llmInferenceManager = LlmInferenceManager
+
+    private val healthTipsDao by lazy { HealthTipsDao(requireContext()) }
 
     // TODO: Rename and change types of parameters
     private var param1: String? = null
@@ -72,42 +77,17 @@ class HomeFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             Log.d("HomeFragment", "Waiting for LLM to be initialized...")
             try {
-                llmInferenceManager.isReady.first { it }
-                Log.i("HomeFragment", "LLM is ready. Loading tips...")
-                loadTips()
+                llmInferenceManager.isReady.first { it } // Wait until LLM is ready
+                Log.i("HomeFragment", "LLM is ready. Proceeding to load/refresh tips.")
+                loadAndRefreshTipsIfNeeded()
             } catch (e: Exception) {
-                Log.e("HomeFragment", "Error during LLM readiness check or initialization", e)
-                Toast.makeText(context, "Gagal menyiapkan fitur AI.", Toast.LENGTH_LONG).show()
-                tipsAdapter.updateTips(getFallbackTips())
+                Log.e("HomeFragment", "LLM readiness check failed or timed out.", e)
+                Toast.makeText(context, "Fitur AI belum siap, memuat tips yang ada.", Toast.LENGTH_LONG).show()
+                // If LLM isn't ready, you definitely can't fetch new tips, so load existing.
+                loadExistingActiveTipsOrFallback()
             }
         }
         setClickListener()
-    }
-
-    private suspend fun loadTips() {
-        Log.d("HomeFragment", "Fetching dynamic tips (LLM confirmed ready)...")
-        try {
-            // binding.tipsProgressBar.visibility = View.VISIBLE // Show loading
-            val dynamicTips = llmInferenceManager.getHealthTips()
-            if (dynamicTips.isNotEmpty()) {
-                tipsAdapter.updateTips(dynamicTips)
-                Log.d("HomeFragment", "Dynamic tips loaded: ${dynamicTips.size}")
-            } else {
-                Log.d("HomeFragment", "No dynamic tips received.")
-                tipsAdapter.updateTips(getFallbackTips())
-                Toast.makeText(context, "Tidak ada tips baru saat ini.", Toast.LENGTH_SHORT).show()
-            }
-        } catch (e: IllegalStateException) { // Catch if getHealthTips still throws due to not ready
-            Log.e("HomeFragment", "Error loading dynamic tips (LLM not ready despite check?):", e)
-            Toast.makeText(context, e.message ?: "Fitur AI belum siap.", Toast.LENGTH_SHORT).show()
-            tipsAdapter.updateTips(getFallbackTips())
-        } catch (e: Exception) {
-            Log.e("HomeFragment", "Error loading dynamic tips:", e)
-            Toast.makeText(context, "Gagal memuat tips.", Toast.LENGTH_SHORT).show()
-            tipsAdapter.updateTips(getFallbackTips())
-        } finally {
-            // binding.tipsProgressBar.visibility = View.GONE // Hide loading
-        }
     }
 
     private fun getFallbackTips(): List<Tips> {
@@ -115,6 +95,68 @@ class HomeFragment : Fragment() {
             Tips("Info", "Tips kesehatan akan segera tersedia."),
             Tips("Periksa Koneksi", "Pastikan koneksi internet Anda stabil untuk mendapatkan tips terbaru.")
         )
+    }
+
+    private suspend fun loadAndRefreshTipsIfNeeded() {
+        val context = requireContext() // Or applicationContext if in a ViewModel
+
+        if (TipsRefreshPreferences.shouldRefreshTips(context)) {
+            Log.d("HomeFragment", "First run of the day or tips need refresh. Fetching new tips.")
+            try {
+                binding.tipsProgressBar.visibility = View.VISIBLE // Show loading
+
+                // 1. Fetch new tips (e.g., from LLMInferenceManager)
+                val newDynamicTips = llmInferenceManager.getHealthTips() // This is a suspend function
+
+                if (newDynamicTips.isNotEmpty()) {
+                    // 2. Replace all tips in the database with the new ones
+                    withContext(Dispatchers.IO) { // Perform database operations on IO thread
+                        healthTipsDao.replaceAllTips(newDynamicTips)
+                    }
+                    tipsAdapter.updateTips(newDynamicTips)
+                    TipsRefreshPreferences.markTipsRefreshedToday(context) // Mark as refreshed
+                    Log.d("HomeFragment", "New dynamic tips fetched and stored: ${newDynamicTips.size}")
+                } else {
+                    Log.d("HomeFragment", "No new dynamic tips received. Using existing or fallback.")
+                    // Optionally, load existing active tips if new ones couldn't be fetched
+                    loadExistingActiveTipsOrFallback()
+                }
+            } catch (e: Exception) {
+                Log.e("HomeFragment", "Error fetching or replacing tips:", e)
+                Toast.makeText(context, "Gagal memuat tips baru.", Toast.LENGTH_SHORT).show()
+                // Load existing active tips or fallback if fetching new ones failed
+                loadExistingActiveTipsOrFallback()
+            } finally {
+                binding.tipsProgressBar.visibility = View.GONE // Hide loading
+            }
+        } else {
+            Log.d("HomeFragment", "Tips already refreshed today. Loading from database.")
+            // Tips have already been refreshed today, just load active ones from DB
+            loadExistingActiveTipsOrFallback()
+        }
+    }
+
+    private suspend fun loadExistingActiveTipsOrFallback() {
+        try {
+            binding.tipsProgressBar.visibility = View.VISIBLE
+            val existingTips = withContext(Dispatchers.IO) {
+                healthTipsDao.getAll()
+            }
+            if (existingTips.isNotEmpty()) {
+                tipsAdapter.updateTips(existingTips)
+                Log.d("HomeFragment", "Loaded existing active tips from DB: ${existingTips.size}")
+            } else {
+                Log.d("HomeFragment", "No active tips in DB. Using fallback.")
+                tipsAdapter.updateTips(getFallbackTips())
+                // You might want to try fetching new tips here as well if the DB is empty
+                // but the day hasn't been marked as "refreshed" yet (edge case).
+            }
+        } catch (e: Exception) {
+            Log.e("HomeFragment", "Error loading existing tips:", e)
+            tipsAdapter.updateTips(getFallbackTips())
+        } finally {
+            binding.tipsProgressBar.visibility = View.GONE
+        }
     }
 
     private fun setupTipsCarousel() {
