@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
+    android:background="@color/main_50"
     tools:context=".presentation.chat.ChatActivity">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -126,9 +127,10 @@
             android:orientation="horizontal">
 
             <RadioButton
-                android:layout_width="50dp"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="30dp"
+                android:layout_weight="1"
                 android:button="@null"
                 android:drawableTop="@android:drawable/btn_radio"
                 android:gravity="center_horizontal"
@@ -136,9 +138,10 @@
                 android:textSize="11sp" />
 
             <RadioButton
-                android:layout_width="52dp"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="30dp"
+                android:layout_weight="1"
                 android:button="@null"
                 android:drawableTop="@android:drawable/btn_radio"
                 android:gravity="center_horizontal"
@@ -146,9 +149,10 @@
                 android:textSize="11sp" />
 
             <RadioButton
-                android:layout_width="48dp"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="30dp"
+                android:layout_weight="1"
                 android:button="@null"
                 android:drawableTop="@android:drawable/btn_radio"
                 android:gravity="center_horizontal"
@@ -156,9 +160,10 @@
                 android:textSize="11sp" />
 
             <RadioButton
-                android:layout_width="64dp"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="30dp"
+                android:layout_weight="1"
                 android:button="@null"
                 android:drawableTop="@android:drawable/btn_radio"
                 android:gravity="center_horizontal"
@@ -166,8 +171,9 @@
                 android:textSize="11sp" />
 
             <RadioButton
-                android:layout_width="48dp"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:button="@null"
                 android:drawableTop="@android:drawable/btn_radio"
                 android:gravity="center_horizontal"
@@ -210,9 +216,10 @@
             android:orientation="horizontal">
 
             <RadioButton
-                android:layout_width="50dp"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="30dp"
+                android:layout_weight="1"
                 android:button="@null"
                 android:drawableTop="@android:drawable/btn_radio"
                 android:gravity="center_horizontal"
@@ -220,9 +227,10 @@
                 android:textSize="11sp" />
 
             <RadioButton
-                android:layout_width="52dp"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="30dp"
+                android:layout_weight="1"
                 android:button="@null"
                 android:drawableTop="@android:drawable/btn_radio"
                 android:gravity="center_horizontal"
@@ -230,9 +238,10 @@
                 android:textSize="11sp" />
 
             <RadioButton
-                android:layout_width="48dp"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="30dp"
+                android:layout_weight="1"
                 android:button="@null"
                 android:drawableTop="@android:drawable/btn_radio"
                 android:gravity="center_horizontal"
@@ -240,9 +249,10 @@
                 android:textSize="11sp" />
 
             <RadioButton
-                android:layout_width="64dp"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="30dp"
+                android:layout_weight="1"
                 android:button="@null"
                 android:drawableTop="@android:drawable/btn_radio"
                 android:gravity="center_horizontal"
@@ -250,8 +260,9 @@
                 android:textSize="11sp" />
 
             <RadioButton
-                android:layout_width="48dp"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:button="@null"
                 android:drawableTop="@android:drawable/btn_radio"
                 android:gravity="center_horizontal"
