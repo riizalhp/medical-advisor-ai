@@ -128,7 +128,7 @@ object LlmInferenceManager {
 
                 onProgress(InitializationState.InitializingRag)
                 ragPipeline = RagPipeline(context.applicationContext as Application, taskOptions) // Assuming RagPipeline constructor is safe to call like this
-                ragPipeline?.memorizeChunks(context, "knowledge/knowledge-1.txt") // This could be IO intensive
+                // ragPipeline?.memorizeChunks(context, "knowledge/knowledge-1.txt") // This could be IO intensive
                 Log.i("LlmInferenceManager", "RAG Pipeline initialized successfully.")
 
                 // ---- Success ----
@@ -271,6 +271,8 @@ object LlmInferenceManager {
             Log.d("LlmInferenceManager", "Database already exists at ${databaseFile.absolutePath}. Skipping copy.")
             onProgress(100)
             return databaseFile
+            /* databaseFile.delete()
+            Log.d("LlmInferenceManager", "Database file exists but is empty. Deleting and re-copying.") */
         }
         onProgress(0)
 
