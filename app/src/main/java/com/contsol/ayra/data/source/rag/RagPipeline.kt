@@ -56,7 +56,7 @@ class RagPipeline(application: Application, llmInferenceOptions: LlmInferenceOpt
         DefaultSemanticTextMemory(
             SqliteVectorStore(
                 768,
-                application.getDatabasePath("knowledge_base.db").absolutePath
+                // application.getDatabasePath("knowledge_base.db").absolutePath
             ),
             embedder
         )
@@ -124,11 +124,16 @@ class RagPipeline(application: Application, llmInferenceOptions: LlmInferenceOpt
         prompt: String,
         callback: AsyncProgressListener<LanguageModelResponse>?
     ): String = coroutineScope {
-        val retrievalRequest = RetrievalRequest.create(
-            prompt,
-            RetrievalConfig.create(3, 0.0f, TaskType.QUESTION_ANSWERING)
-        )
-        retrievalAndInferenceChain.invoke(retrievalRequest, callback).await().text
+        try {
+            val retrievalRequest = RetrievalRequest.create(
+                prompt,
+                RetrievalConfig.create(3, 0.0f, TaskType.QUESTION_ANSWERING)
+            )
+            retrievalAndInferenceChain.invoke(retrievalRequest, callback).await().text
+        } catch (e: Exception) {
+            Log.e("RagPipeline", "Failed to generate response: ${e.message}", e)
+            "Maaf, terjadi kesalahan teknis saat memproses permintaan."
+        }
     }
 
     companion object {
