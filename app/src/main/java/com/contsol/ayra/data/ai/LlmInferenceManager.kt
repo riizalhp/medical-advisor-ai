@@ -254,7 +254,7 @@ object LlmInferenceManager {
             for (byte in bytes) {
                 sb.append(String.format("%02x", byte))
             }
-            sb.toString()
+            sb.toString().toUpperCase()
         } catch (e: Exception) {
             Log.e("LlmInferenceManager", "Failed to calculate MD5 checksum for ${file.name}", e)
             null
