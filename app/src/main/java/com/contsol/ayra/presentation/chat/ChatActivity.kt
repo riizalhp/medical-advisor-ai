@@ -15,6 +15,7 @@ import android.view.View
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -48,6 +49,7 @@ import androidx.core.view.isGone
 class ChatActivity : AppCompatActivity() {
 
     private lateinit var recyclerViewChat: RecyclerView
+    private lateinit var textViewEmptyChat: TextView
     private lateinit var editTextMessage: EditText
     private lateinit var buttonSend: ImageButton
     private lateinit var buttonAttach: ImageButton
@@ -55,8 +57,6 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var buttonMic: ImageButton
     private lateinit var chatAdapter: ChatAdapter
     private val messagesList = mutableListOf<ChatLog>()
-
-    // For displaying the selected image thumbnail (optional, but good UX)
     private lateinit var imageViewAttachmentPreview: ImageView
     private lateinit var buttonRemoveAttachment: ImageButton
     private lateinit var previewContainer: ConstraintLayout
@@ -103,6 +103,7 @@ class ChatActivity : AppCompatActivity() {
         setContentView(R.layout.activity_chat)
 
         recyclerViewChat = findViewById(R.id.recyclerViewChat)
+        textViewEmptyChat = findViewById(R.id.textViewEmptyChat)
         editTextMessage = findViewById(R.id.editTextMessage)
         buttonSend = findViewById(R.id.buttonSend)
         buttonAttach = findViewById(R.id.buttonAttach)
@@ -118,8 +119,9 @@ class ChatActivity : AppCompatActivity() {
         cameraPreviewView = findViewById(R.id.cameraPreviewView)
         buttonCaptureImage = findViewById(R.id.buttonCaptureImage)
 
+        updateEmptyStateVisibility()
         setupRecyclerView()
-        loadSampleMessages()
+        // loadSampleMessages()
         setupTextChangeListener()
         updateSendButtonVisibility()
 
@@ -457,6 +459,18 @@ class ChatActivity : AppCompatActivity() {
         })
     }
 
+    private fun updateEmptyStateVisibility() {
+        val isEmpty = messagesList.isEmpty()
+
+        if (isEmpty) {
+            recyclerViewChat.visibility = View.GONE
+            textViewEmptyChat.visibility = View.VISIBLE
+        } else {
+            recyclerViewChat.visibility = View.VISIBLE
+            textViewEmptyChat.visibility = View.GONE
+        }
+    }
+
     private fun updateSendButtonVisibility() {
         val messageText = editTextMessage.text.toString().trim()
         val hasAttachment = currentAttachmentPath != null
@@ -580,6 +594,7 @@ class ChatActivity : AppCompatActivity() {
     private fun addNewMessage(message: ChatLog) {
         messagesList.add(message)
         chatAdapter.submitList(messagesList.toList())
+        updateEmptyStateVisibility()
         recyclerViewChat.smoothScrollToPosition(chatAdapter.itemCount - 1)
     }
 
