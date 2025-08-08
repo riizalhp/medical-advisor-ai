@@ -47,9 +47,9 @@ class AppSQLiteHelper(context: Context) :
         private const val CREATE_CHAT_LOG_TABLE = """
             CREATE TABLE ChatLog (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                messageContent TEXT NOT NULL,
-                isUserMessage INTEGER NOT NULL,
-                imageUrl TEXT,
+                message_content TEXT NOT NULL,
+                is_user_message INTEGER NOT NULL,
+                image_url TEXT,
                 timestamp INTEGER NOT NULL
             );
         """

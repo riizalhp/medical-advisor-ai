@@ -45,8 +45,13 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.collections.toList
 import androidx.core.view.isGone
+import com.contsol.ayra.data.source.local.database.dao.ChatLogDao
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class ChatActivity : AppCompatActivity() {
+
+    private lateinit var chatLogDao: ChatLogDao
 
     private lateinit var recyclerViewChat: RecyclerView
     private lateinit var textViewEmptyChat: TextView
@@ -102,6 +107,8 @@ class ChatActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
 
+        chatLogDao = ChatLogDao(this)
+
         recyclerViewChat = findViewById(R.id.recyclerViewChat)
         textViewEmptyChat = findViewById(R.id.textViewEmptyChat)
         editTextMessage = findViewById(R.id.editTextMessage)
@@ -121,6 +128,7 @@ class ChatActivity : AppCompatActivity() {
 
         updateEmptyStateVisibility()
         setupRecyclerView()
+        loadChatMessages()
         // loadSampleMessages()
         setupTextChangeListener()
         updateSendButtonVisibility()
@@ -570,32 +578,90 @@ class ChatActivity : AppCompatActivity() {
         }
     }
 
-    private var typingIndicatorIndex: Int = -1
+    private var isTypingIndicatorVisible: Boolean = false
     private fun showTypingIndicator() {
-        if (typingIndicatorIndex != -1 && messagesList.getOrNull(typingIndicatorIndex)?.messageContent == "AYRA is typing...") {
+        if (isTypingIndicatorVisible) {
             return // Already showing
         }
-        val typingMessage = ChatLog(messageContent = "AYRA is typing...", isUserMessage = false)
+
+        // Remove any existing typing indicator first (defensive)
+        removeTypingIndicatorLogic()
+
+        val typingMessage = ChatLog(
+            messageContent = "AYRA sedang berpikir...",
+            isUserMessage = false,
+            timestamp = System.currentTimeMillis() // Give it a timestamp for sorting if needed temporarily
+            // Add a temporary flag if you prefer: isTypingIndicator = true (you'd need to add this field to ChatLog, non-persistent)
+        )
         messagesList.add(typingMessage)
-        typingIndicatorIndex = messagesList.size - 1
-        chatAdapter.submitList(messagesList.toList())
+        chatAdapter.submitList(messagesList.toList()) // Make sure your adapter handles new list submissions correctly
         recyclerViewChat.smoothScrollToPosition(chatAdapter.itemCount - 1)
+        isTypingIndicatorVisible = true
     }
+
+    private fun removeTypingIndicatorLogic() {
+        val currentList = messagesList.toMutableList() // Work on a copy to avoid concurrent modification issues
+        var listChanged = false
+
+        // Iterate backwards to safely remove items
+        for (i in currentList.indices.reversed()) {
+            if (currentList[i].messageContent == "AYRA sedang berpikir..." && !currentList[i].isUserMessage) {
+                // Found the typing indicator
+                currentList.removeAt(i)
+                listChanged = true
+                // break // Assuming only one typing indicator can exist
+            }
+        }
+
+        if (listChanged) {
+            messagesList.clear()
+            messagesList.addAll(currentList)
+            chatAdapter.submitList(messagesList.toList())
+        }
+    }
+
 
     private fun removeTypingIndicator() {
-        if (typingIndicatorIndex != -1 && messagesList.getOrNull(typingIndicatorIndex)?.messageContent == "AYRA is typing...") {
-            messagesList.removeAt(typingIndicatorIndex)
-            chatAdapter.submitList(messagesList.toList()) // Update the adapter with the new list
+        if (!isTypingIndicatorVisible) {
+            return
         }
-        typingIndicatorIndex = -1
+        removeTypingIndicatorLogic()
+        isTypingIndicatorVisible = false
     }
 
-
     private fun addNewMessage(message: ChatLog) {
-        messagesList.add(message)
-        chatAdapter.submitList(messagesList.toList())
-        updateEmptyStateVisibility()
-        recyclerViewChat.smoothScrollToPosition(chatAdapter.itemCount - 1)
+        lifecycleScope.launch(Dispatchers.IO) {
+            val insertedId = chatLogDao.insert(message)
+            if (insertedId > -1) { // Successfully inserted
+                withContext(Dispatchers.Main) {
+                    messagesList.add(message)
+                    chatAdapter.submitList(messagesList.toList())
+                    updateEmptyStateVisibility()
+                    recyclerViewChat.smoothScrollToPosition(chatAdapter.itemCount - 1)
+                }
+            } else {
+                // Handle insertion error (e.g., show a toast)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@ChatActivity, "Error sending message", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun loadChatMessages() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val loadedMessages = chatLogDao.getAll()
+            withContext(Dispatchers.Main) {
+                messagesList.clear()
+                messagesList.addAll(loadedMessages)
+                chatAdapter.submitList(messagesList.toList())
+                updateEmptyStateVisibility()
+                if (messagesList.isNotEmpty()) {
+                    recyclerViewChat.smoothScrollToPosition(chatAdapter.itemCount - 1)
+                }
+                isTypingIndicatorVisible = false
+            }
+        }
     }
 
     private fun loadSampleMessages() {
