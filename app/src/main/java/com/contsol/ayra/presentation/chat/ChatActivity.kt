@@ -68,7 +68,7 @@ class ChatActivity : AppCompatActivity() {
 
     // For CameraX
     private lateinit var cameraPreviewView: PreviewView
-    private lateinit var buttonCaptureImage: ImageButton // Button to take picture in CameraX view
+    private lateinit var buttonCaptureImage: ImageButton
     private var imageCapture: ImageCapture? = null
     private lateinit var cameraExecutor: ExecutorService
     private var cameraProvider: ProcessCameraProvider? = null
@@ -529,7 +529,6 @@ class ChatActivity : AppCompatActivity() {
             return
         }
         lifecycleScope.launch {
-            showTypingIndicator()
             try {
                 Log.d("ChatActivity", "Requesting AI response for: $originalMessage")
                 val aiResponseText = LlmInferenceManager.runWithRag(originalMessage)
@@ -564,7 +563,6 @@ class ChatActivity : AppCompatActivity() {
             return
         }
         lifecycleScope.launch {
-            showTypingIndicator()
             try {
                 Log.d("ChatActivity", "Requesting AI response for prompt: '$prompt' with image: $imagePath")
                 val aiResponseText = LlmInferenceManager.runWithImage(prompt, imagePath) ?: "Sorry, I couldn't process that image and prompt."
@@ -585,13 +583,12 @@ class ChatActivity : AppCompatActivity() {
         }
 
         // Remove any existing typing indicator first (defensive)
-        removeTypingIndicatorLogic()
+        // removeTypingIndicatorLogic()
 
         val typingMessage = ChatLog(
             messageContent = "AYRA sedang berpikir...",
             isUserMessage = false,
-            timestamp = System.currentTimeMillis() // Give it a timestamp for sorting if needed temporarily
-            // Add a temporary flag if you prefer: isTypingIndicator = true (you'd need to add this field to ChatLog, non-persistent)
+            timestamp = System.currentTimeMillis()
         )
         messagesList.add(typingMessage)
         chatAdapter.submitList(messagesList.toList()) // Make sure your adapter handles new list submissions correctly
@@ -632,9 +629,20 @@ class ChatActivity : AppCompatActivity() {
     private fun addNewMessage(message: ChatLog) {
         lifecycleScope.launch(Dispatchers.IO) {
             val insertedId = chatLogDao.insert(message)
+            val typingMessage = ChatLog(
+                messageContent = "AYRA sedang berpikir...",
+                isUserMessage = false,
+                timestamp = System.currentTimeMillis()
+            )
             if (insertedId > -1) { // Successfully inserted
                 withContext(Dispatchers.Main) {
                     messagesList.add(message)
+                    if (message.isUserMessage) {
+                        messagesList.add(typingMessage)
+                        isTypingIndicatorVisible = true
+                    } else {
+                        removeTypingIndicatorLogic()
+                    }
                     chatAdapter.submitList(messagesList.toList())
                     updateEmptyStateVisibility()
                     recyclerViewChat.smoothScrollToPosition(chatAdapter.itemCount - 1)
