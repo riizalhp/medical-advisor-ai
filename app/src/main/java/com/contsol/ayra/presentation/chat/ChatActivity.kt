@@ -15,6 +15,7 @@ import android.view.View
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -44,10 +45,16 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.collections.toList
 import androidx.core.view.isGone
+import com.contsol.ayra.data.source.local.database.dao.ChatLogDao
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class ChatActivity : AppCompatActivity() {
 
+    private lateinit var chatLogDao: ChatLogDao
+
     private lateinit var recyclerViewChat: RecyclerView
+    private lateinit var textViewEmptyChat: TextView
     private lateinit var editTextMessage: EditText
     private lateinit var buttonSend: ImageButton
     private lateinit var buttonAttach: ImageButton
@@ -55,15 +62,13 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var buttonMic: ImageButton
     private lateinit var chatAdapter: ChatAdapter
     private val messagesList = mutableListOf<ChatLog>()
-
-    // For displaying the selected image thumbnail (optional, but good UX)
     private lateinit var imageViewAttachmentPreview: ImageView
     private lateinit var buttonRemoveAttachment: ImageButton
     private lateinit var previewContainer: ConstraintLayout
 
     // For CameraX
     private lateinit var cameraPreviewView: PreviewView
-    private lateinit var buttonCaptureImage: ImageButton // Button to take picture in CameraX view
+    private lateinit var buttonCaptureImage: ImageButton
     private var imageCapture: ImageCapture? = null
     private lateinit var cameraExecutor: ExecutorService
     private var cameraProvider: ProcessCameraProvider? = null
@@ -102,7 +107,10 @@ class ChatActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
 
+        chatLogDao = ChatLogDao(this)
+
         recyclerViewChat = findViewById(R.id.recyclerViewChat)
+        textViewEmptyChat = findViewById(R.id.textViewEmptyChat)
         editTextMessage = findViewById(R.id.editTextMessage)
         buttonSend = findViewById(R.id.buttonSend)
         buttonAttach = findViewById(R.id.buttonAttach)
@@ -118,8 +126,10 @@ class ChatActivity : AppCompatActivity() {
         cameraPreviewView = findViewById(R.id.cameraPreviewView)
         buttonCaptureImage = findViewById(R.id.buttonCaptureImage)
 
+        updateEmptyStateVisibility()
         setupRecyclerView()
-        loadSampleMessages()
+        loadChatMessages()
+        // loadSampleMessages()
         setupTextChangeListener()
         updateSendButtonVisibility()
 
@@ -457,6 +467,18 @@ class ChatActivity : AppCompatActivity() {
         })
     }
 
+    private fun updateEmptyStateVisibility() {
+        val isEmpty = messagesList.isEmpty()
+
+        if (isEmpty) {
+            recyclerViewChat.visibility = View.GONE
+            textViewEmptyChat.visibility = View.VISIBLE
+        } else {
+            recyclerViewChat.visibility = View.VISIBLE
+            textViewEmptyChat.visibility = View.GONE
+        }
+    }
+
     private fun updateSendButtonVisibility() {
         val messageText = editTextMessage.text.toString().trim()
         val hasAttachment = currentAttachmentPath != null
@@ -507,7 +529,6 @@ class ChatActivity : AppCompatActivity() {
             return
         }
         lifecycleScope.launch {
-            showTypingIndicator()
             try {
                 Log.d("ChatActivity", "Requesting AI response for: $originalMessage")
                 val aiResponseText = LlmInferenceManager.runWithRag(originalMessage)
@@ -542,7 +563,6 @@ class ChatActivity : AppCompatActivity() {
             return
         }
         lifecycleScope.launch {
-            showTypingIndicator()
             try {
                 Log.d("ChatActivity", "Requesting AI response for prompt: '$prompt' with image: $imagePath")
                 val aiResponseText = LlmInferenceManager.runWithImage(prompt, imagePath) ?: "Sorry, I couldn't process that image and prompt."
@@ -556,31 +576,100 @@ class ChatActivity : AppCompatActivity() {
         }
     }
 
-    private var typingIndicatorIndex: Int = -1
+    private var isTypingIndicatorVisible: Boolean = false
     private fun showTypingIndicator() {
-        if (typingIndicatorIndex != -1 && messagesList.getOrNull(typingIndicatorIndex)?.messageContent == "AYRA is typing...") {
+        if (isTypingIndicatorVisible) {
             return // Already showing
         }
-        val typingMessage = ChatLog(messageContent = "AYRA is typing...", isUserMessage = false)
+
+        // Remove any existing typing indicator first (defensive)
+        // removeTypingIndicatorLogic()
+
+        val typingMessage = ChatLog(
+            messageContent = "AYRA sedang berpikir...",
+            isUserMessage = false,
+            timestamp = System.currentTimeMillis()
+        )
         messagesList.add(typingMessage)
-        typingIndicatorIndex = messagesList.size - 1
-        chatAdapter.submitList(messagesList.toList())
+        chatAdapter.submitList(messagesList.toList()) // Make sure your adapter handles new list submissions correctly
         recyclerViewChat.smoothScrollToPosition(chatAdapter.itemCount - 1)
+        isTypingIndicatorVisible = true
     }
+
+    private fun removeTypingIndicatorLogic() {
+        val currentList = messagesList.toMutableList() // Work on a copy to avoid concurrent modification issues
+        var listChanged = false
+
+        // Iterate backwards to safely remove items
+        for (i in currentList.indices.reversed()) {
+            if (currentList[i].messageContent == "AYRA sedang berpikir..." && !currentList[i].isUserMessage) {
+                // Found the typing indicator
+                currentList.removeAt(i)
+                listChanged = true
+                // break // Assuming only one typing indicator can exist
+            }
+        }
+
+        if (listChanged) {
+            messagesList.clear()
+            messagesList.addAll(currentList)
+            chatAdapter.submitList(messagesList.toList())
+        }
+    }
+
 
     private fun removeTypingIndicator() {
-        if (typingIndicatorIndex != -1 && messagesList.getOrNull(typingIndicatorIndex)?.messageContent == "AYRA is typing...") {
-            messagesList.removeAt(typingIndicatorIndex)
-            chatAdapter.submitList(messagesList.toList()) // Update the adapter with the new list
+        if (!isTypingIndicatorVisible) {
+            return
         }
-        typingIndicatorIndex = -1
+        removeTypingIndicatorLogic()
+        isTypingIndicatorVisible = false
     }
 
-
     private fun addNewMessage(message: ChatLog) {
-        messagesList.add(message)
-        chatAdapter.submitList(messagesList.toList())
-        recyclerViewChat.smoothScrollToPosition(chatAdapter.itemCount - 1)
+        lifecycleScope.launch(Dispatchers.IO) {
+            val insertedId = chatLogDao.insert(message)
+            val typingMessage = ChatLog(
+                messageContent = "AYRA sedang berpikir...",
+                isUserMessage = false,
+                timestamp = System.currentTimeMillis()
+            )
+            if (insertedId > -1) { // Successfully inserted
+                withContext(Dispatchers.Main) {
+                    messagesList.add(message)
+                    if (message.isUserMessage) {
+                        messagesList.add(typingMessage)
+                        isTypingIndicatorVisible = true
+                    } else {
+                        removeTypingIndicatorLogic()
+                    }
+                    chatAdapter.submitList(messagesList.toList())
+                    updateEmptyStateVisibility()
+                    recyclerViewChat.smoothScrollToPosition(chatAdapter.itemCount - 1)
+                }
+            } else {
+                // Handle insertion error (e.g., show a toast)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@ChatActivity, "Error sending message", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun loadChatMessages() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val loadedMessages = chatLogDao.getAll()
+            withContext(Dispatchers.Main) {
+                messagesList.clear()
+                messagesList.addAll(loadedMessages)
+                chatAdapter.submitList(messagesList.toList())
+                updateEmptyStateVisibility()
+                if (messagesList.isNotEmpty()) {
+                    recyclerViewChat.smoothScrollToPosition(chatAdapter.itemCount - 1)
+                }
+                isTypingIndicatorVisible = false
+            }
+        }
     }
 
     private fun loadSampleMessages() {

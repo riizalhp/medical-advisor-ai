@@ -30,7 +30,7 @@
     <string name="timestamp_example">22.09</string>
     <string name="fab">fab</string>
     <string name="this_is_image_description">This is image description</string>
-    <string name="assistant">Assistant</string>
+    <string name="assistant">Asisten</string>
     <string name="ayra_chat_menu">Ayra Chat Menu</string>
     <string name="attachment_preview">Attachment Preview</string>
     <string name="remove_attachment">Remove attachment</string>
@@ -96,4 +96,5 @@
     <string name="anda_tidur_berapa_jam_semalam">Anda tidur berapa jam semalam?</string>
     <string name="sampai">Sampai</string>
     <string name="simpan">Simpan</string>
+    <string name="ask_ayra_anything">Tanya AYRA Apa Aja</string>
 </resources>

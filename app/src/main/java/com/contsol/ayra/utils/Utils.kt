@@ -3,10 +3,11 @@ package com.contsol.ayra.utils
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
+import java.util.Locale
 
 fun convertTimestampToDate(timestamp: Long): String {
-    val date = Date(timestamp * 1000) // Convert seconds to milliseconds
-    val format = SimpleDateFormat("HH.mm")
+    val date = Date(timestamp)
+    val format = SimpleDateFormat("HH.mm", Locale.getDefault())
     return format.format(date)
 }
 
