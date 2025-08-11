@@ -45,4 +45,8 @@ class MainViewModel: ViewModel() {
             )
         }
     }
+
+    fun closeLlm() {
+        LlmInferenceManager.close()
+    }
 }
