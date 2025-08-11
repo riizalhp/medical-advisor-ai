@@ -11,10 +11,12 @@ import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.contsol.ayra.data.ai.LlmInferenceManager
 import com.contsol.ayra.data.source.local.database.dao.HealthTipsDao
+import com.contsol.ayra.data.source.local.database.dao.UserDao
 import com.contsol.ayra.data.source.local.database.model.Tips
 import com.contsol.ayra.data.source.local.preference.TipsRefreshPreferences
 import com.contsol.ayra.databinding.FragmentHomeBinding
 import com.contsol.ayra.presentation.checkin.CheckInActivity
+import com.contsol.ayra.utils.getGreeting
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -40,6 +42,7 @@ class HomeFragment : Fragment() {
     private val llmInferenceManager = LlmInferenceManager
 
     private val healthTipsDao by lazy { HealthTipsDao(requireContext()) }
+    private val userDao by lazy { UserDao(requireContext()) }
 
     // TODO: Rename and change types of parameters
     private var param1: String? = null
@@ -73,6 +76,7 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        setUserName()
         setupTipsCarousel()
         viewLifecycleOwner.lifecycleScope.launch {
             Log.d("HomeFragment", "Waiting for LLM to be initialized...")
@@ -88,6 +92,12 @@ class HomeFragment : Fragment() {
             }
         }
         setClickListener()
+    }
+
+    private fun setUserName() {
+        val userName = userDao.getUserName()
+        val greeting = getGreeting()
+        binding.tvGreeting.text = "$greeting, $userName!"
     }
 
     private fun getFallbackTips(): List<Tips> {

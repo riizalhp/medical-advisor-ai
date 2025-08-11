@@ -19,3 +19,15 @@ fun getEndOfTheDayTimestamp(): Long {
     calendar.set(Calendar.MILLISECOND, 999)
     return calendar.timeInMillis
 }
+
+fun getGreeting(): String {
+    val calendar = Calendar.getInstance()
+    val hourOfDay = calendar.get(Calendar.HOUR_OF_DAY)
+
+    return when (hourOfDay) {
+        in 0..11 -> "Selamat Pagi"
+        in 12..16 -> "Selamat Siang"
+        in 17..20 -> "Selamat Sore"
+        else -> "Selamat Malam"
+    }
+}

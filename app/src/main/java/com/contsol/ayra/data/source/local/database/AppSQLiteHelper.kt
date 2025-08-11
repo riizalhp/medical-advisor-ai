@@ -39,7 +39,11 @@ class AppSQLiteHelper(context: Context) :
             CREATE TABLE User (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
+                age INTEGER NOT NULL,
                 gender TEXT NOT NULL,
+                height REAL NOT NULL,
+                weight REAL NOT NULL,
+                blood_type TEXT NOT NULL,
                 created_at INTEGER NOT NULL
             );
         """

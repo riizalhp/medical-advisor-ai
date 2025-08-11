@@ -125,6 +125,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        mainViewModel.closeLlm()
         Log.d("MyApplication", "Application onDestroy: Cleaning up LLM...")
     }
 }
