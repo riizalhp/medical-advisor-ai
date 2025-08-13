@@ -23,7 +23,7 @@
             android:background="@color/secondary_default">
 
             <ImageView
-                android:id="@+id/hamburger_menu"
+                android:id="@+id/btnBack"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="start|center_vertical"
@@ -310,14 +310,17 @@
             app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent">
 
-            <TextView
-                android:id="@+id/tvTidurDari"
+            <EditText
+                android:id="@+id/inputTidurDari"
                 android:layout_width="0dp"
                 android:layout_height="48dp"
                 android:layout_weight="1"
+                android:autofillHints="@string/timestamp_example"
                 android:background="@drawable/bg_green_box"
                 android:gravity="center"
+                android:inputType="time"
                 android:text="@string/timestamp_example"
+                android:hint="@string/timestamp_example"
                 android:textSize="16sp" />
 
             <TextView
@@ -328,14 +331,17 @@
                 android:text="@string/sampai"
                 android:textSize="16sp" />
 
-            <TextView
-                android:id="@+id/tvTidurSampai"
+            <EditText
+                android:id="@+id/inputTidurSampai"
                 android:layout_width="0dp"
                 android:layout_height="48dp"
                 android:layout_weight="1"
+                android:autofillHints="@string/timestamp_example"
                 android:background="@drawable/bg_green_box"
                 android:gravity="center"
+                android:inputType="time"
                 android:text="@string/timestamp_example"
+                android:hint="@string/timestamp_example"
                 android:textSize="16sp" />
         </LinearLayout>
 
