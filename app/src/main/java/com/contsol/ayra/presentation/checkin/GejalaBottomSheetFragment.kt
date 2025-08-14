@@ -6,13 +6,16 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.Space
 import android.widget.Toast
 import androidx.activity.result.launch
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.contsol.ayra.R
 import com.contsol.ayra.data.source.local.database.model.Symptom
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.launch
+import androidx.core.view.isNotEmpty
 
 class GejalaBottomSheetFragment: BottomSheetDialogFragment() {
 
@@ -72,66 +75,71 @@ class GejalaBottomSheetFragment: BottomSheetDialogFragment() {
     }
 
     private fun addSymptomsToLayout(symptoms: List<Symptom>) {
-        gejalaButtonContainer.removeAllViews() // Clear previous buttons if any
+        gejalaButtonContainer.removeAllViews()
 
-        val buttonsPerRow = 2
-        var currentRow: LinearLayout? = null
+        gejalaButtonContainer.post {
+            val parentWidth = gejalaButtonContainer.width
+            val buttonMinWidthPx = (100 * resources.displayMetrics.density).toInt() // Example: min width 100dp
+            val buttonMarginPx = (4 * resources.displayMetrics.density).toInt() // 4dp margin on each side (total 8dp between buttons)
 
-        symptoms.forEachIndexed { index, symptom ->
-            if (index % buttonsPerRow == 0) {
-                // Create a new row (LinearLayout horizontal)
-                currentRow = LinearLayout(requireContext()).apply {
+            var buttonsPerRow = if (parentWidth > 0 && buttonMinWidthPx > 0) {
+                (parentWidth + 2 * buttonMarginPx) / (buttonMinWidthPx + 2 * buttonMarginPx)
+            } else {
+                2 // Default if width is not available yet or min width is zero
+            }
+            if (buttonsPerRow < 1) buttonsPerRow = 1 // Ensure at least one button per row
+
+            var currentRow: LinearLayout? = null
+
+            symptoms.forEachIndexed { index, symptom ->
+                if (index % buttonsPerRow == 0) {
+                    currentRow = LinearLayout(requireContext()).apply {
+                        layoutParams = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                        ).also {
+                            if (gejalaButtonContainer.isNotEmpty()) { // Add top margin for rows after the first
+                                it.topMargin = (8 * resources.displayMetrics.density).toInt()
+                            }
+                        }
+                        orientation = LinearLayout.HORIZONTAL
+                        weightSum = buttonsPerRow.toFloat() // Distribute space equally
+                    }
+                    gejalaButtonContainer.addView(currentRow)
+                }
+
+                val button = Button(requireContext()).apply {
+                    text = symptom.name
+                    textSize = 11f // Set text size to 11sp
+                    setBackgroundResource(R.drawable.bg_btn_gejala)
+                    setTextColor(ContextCompat.getColor(context, R.color.secondary_900))
+
                     layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                    )
-                    orientation = LinearLayout.HORIZONTAL
-                    // Add bottom margin to the row if it's not the last set of buttons
-                    if(index + buttonsPerRow <= symptoms.size || symptoms.size % buttonsPerRow != 0) {
-                        (layoutParams as LinearLayout.LayoutParams).bottomMargin = (8 * resources.displayMetrics.density).toInt() // 8dp margin
+                        0, // width set to 0 when using weight
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        1f // weight
+                    ).apply {
+                        if (index % buttonsPerRow > 0) { // If not the first button in the row
+                            marginStart = buttonMarginPx * 2 // 8dp total margin (4dp from prev, 4dp from current)
+                        }
+                    }
+
+                    setOnClickListener {
+                        if (selectedSymptoms.contains(symptom)) {
+                            selectedSymptoms.remove(symptom)
+                            it.setBackgroundResource(R.drawable.bg_btn_gejala)
+                            setTextColor(ContextCompat.getColor(context, R.color.secondary_900))
+                            Toast.makeText(requireContext(), "${symptom.name} deselected", Toast.LENGTH_SHORT).show()
+                        } else {
+                            selectedSymptoms.add(symptom)
+                            it.setBackgroundResource(R.drawable.bg_button_teal)
+                            setTextColor(ContextCompat.getColor(context, R.color.secondary_50))
+                            Toast.makeText(requireContext(), "${symptom.name} selected", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
-                gejalaButtonContainer.addView(currentRow)
+                currentRow?.addView(button)
             }
-
-            val button = Button(requireContext()).apply {
-                text = symptom.name
-                // Programmatic ID, useful if you need to reference them later, though not strictly necessary for this example
-                // id = View.generateViewId()
-
-                val layoutParams = LinearLayout.LayoutParams(
-                    0, // width
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    1.0f // weight
-                ).apply {
-                    // Add margin between buttons in the same row
-                    if (index % buttonsPerRow < buttonsPerRow - 1) { // If not the last button in the row
-                        marginEnd = (4 * resources.displayMetrics.density).toInt() // 4dp margin
-                    }
-                    if (index % buttonsPerRow > 0) { // If not the first button in the row
-                        marginStart = (4 * resources.displayMetrics.density).toInt() // 4dp margin
-                    }
-                }
-                this.layoutParams = layoutParams
-
-                // Example: Basic selection state (you might want to use MaterialButton with checkable behavior)
-                // For simplicity, this example just toasts. You'd likely want to change button appearance
-                // or store the selection.
-                setOnClickListener {
-                    if (selectedSymptoms.contains(symptom)) {
-                        selectedSymptoms.remove(symptom)
-                        // TODO: Update button appearance to show it's deselected
-                        // e.g., it.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.default_button_color))
-                        Toast.makeText(requireContext(), "${symptom.name} deselected", Toast.LENGTH_SHORT).show()
-                    } else {
-                        selectedSymptoms.add(symptom)
-                        // TODO: Update button appearance to show it's selected
-                        // e.g., it.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.selected_button_color))
-                        Toast.makeText(requireContext(), "${symptom.name} selected", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-            currentRow?.addView(button)
         }
     }
 
